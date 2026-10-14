@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return get(/databases/$(db)/documents/users/$(request.auth.uid)).data; }
+    function isAdmin() { return signedIn() && me().role == 'admin'; }
+    function isFarmer() { return signedIn() && me().role == 'farmer'; }
+    function onlyChanges(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+                    && request.resource.data.role in ['customer', 'farmer']
+                    && request.resource.data.isBlocked == false;
+      allow update: if signedIn() && (
+        (request.auth.uid == uid && onlyChanges(['name','phone','photoUrl','fcmToken',
+           'addresses','favoriteProductIds','followedFarmIds'])) || isAdmin());
+    }
+
+    match /farms/{farmId} {
+      allow read: if signedIn();
+      allow create: if isFarmer() && request.auth.uid == farmId;
+      allow update: if (isFarmer() && request.auth.uid == farmId)
+                    || isAdmin()
+                    || (signedIn() && onlyChanges(['ratingAvg','ratingCount']));
+    }
+
+    match /products/{id} {
+      allow read: if signedIn();
+      allow create: if isFarmer() && request.resource.data.farmerUid == request.auth.uid
+                    && request.resource.data.price > 0;
+      allow update: if signedIn() && (
+        resource.data.farmerUid == request.auth.uid || isAdmin() ||
+        onlyChanges(['quantityAvailable','totalSold','ratingAvg','ratingCount','updatedAt']));
+      allow delete: if signedIn() && (resource.data.farmerUid == request.auth.uid || isAdmin());
+    }
+
+    match /orders/{id} {
+      allow create: if signedIn() && request.resource.data.customerUid == request.auth.uid;
+      allow read: if signedIn() && (resource.data.customerUid == request.auth.uid
+                                 || resource.data.farmerUid == request.auth.uid || isAdmin());
+      allow update: if signedIn() && (resource.data.customerUid == request.auth.uid
+                                   || resource.data.farmerUid == request.auth.uid || isAdmin());
+    }
+
+    match /reviews/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.customerUid == request.auth.uid;
+    }
+
+    match /harvestAlerts/{id} {
+      allow read: if signedIn();
+      allow create: if isFarmer() && request.resource.data.farmerUid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.farmerUid == request.auth.uid;
+    }
+
+    match /searchLogs/{id} {
+      allow create: if signedIn();
+      allow read: if isAdmin();
+    }
+  }
+}

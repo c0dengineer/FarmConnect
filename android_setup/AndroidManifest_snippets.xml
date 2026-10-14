@@ -1,0 +1,12 @@
+<!-- Add these INSIDE android/app/src/main/AndroidManifest.xml -->
+
+<!-- 1) Directly under <manifest ...> and ABOVE <application> -->
+<uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+<!-- 2) INSIDE <application ...> (same level as <activity>) -->
+<meta-data
+    android:name="com.google.android.geo.API_KEY"
+    android:value="YOUR_GOOGLE_MAPS_API_KEY"/>
