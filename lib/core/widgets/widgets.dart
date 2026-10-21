@@ -22,7 +22,7 @@ class AppCard extends StatelessWidget {
     final r = BorderRadius.circular(16);
     return Container(
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(color: color ?? Colors.white, borderRadius: r, border: Border.all(color: AppColors.border)),
+      decoration: BoxDecoration(color: color ?? Colors.white, borderRadius: r, border: Border.all(color: AppColors.border.withOpacity(.48))),
       child: Material(
         color: Colors.transparent,
         child: InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
@@ -381,7 +381,7 @@ class ProductCard extends StatelessWidget {
         onTap: () => context.push('/product/${p.id}'),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Stack(children: [
-            NetImage(p.imageUrls.isEmpty ? null : p.imageUrls.first, height: 128, width: double.infinity),
+            NetImage(p.imageUrls.isEmpty ? null : p.imageUrls.first, height: 132, width: double.infinity),
             Positioned(left: 8, top: 8, child: FreshnessBadge(score: p.freshness, compact: true)),
             if (p.isUgly && p.uglyDiscountPercent > 0)
               Positioned(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farmconnect/all.dart';
@@ -76,6 +76,9 @@ class ProfileScreen extends ConsumerWidget {
     final spent = delivered.fold<double>(0, (s, o) => s + o.total);
     final rescued = delivered.expand((o) => o.items).where((i) => i.isUgly).fold<int>(0, (s, i) => s + i.qty);
     final milesKm = delivered.fold<double>(0, (s, o) => s + o.distanceKm);
+    final farms = ref.watch(farmsProvider).valueOrNull ?? [];
+    final followedFarms = farms.where((f) => u.followedFarmIds.contains(f.id)).toList();
+    final harvestAlerts = ref.watch(followedAlertsProvider).valueOrNull ?? [];
 
     Widget item(IconData icon, String title, VoidCallback onTap, {String? trailing}) => Padding(
           padding: const EdgeInsets.only(bottom: 10),
@@ -106,7 +109,18 @@ class ProfileScreen extends ConsumerWidget {
           ])),
           IconButton(onPressed: () => _editProfile(context, ref, u), icon: const Icon(Icons.edit_outlined)),
         ]),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
+        AppCard(color: AppColors.accentSoft, onTap: () => context.push('/feed'), child: Row(children: [
+          const Icon(Icons.notifications_active_outlined, color: AppColors.accent), const SizedBox(width: 10),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Harvest alert', style: TextStyle(fontWeight: FontWeight.w700)), Text(harvestAlerts.isEmpty ? 'Follow farms to get harvest updates.' : harvestAlerts.first.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12))])),
+          Text('${harvestAlerts.length}', style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w700)),
+        ])),
+        const SizedBox(height: 12),
+        SectionHeader('Subscribed & favourite farms', action: 'Manage (${followedFarms.length})', onAction: () => context.push('/favorites')),
+        if (followedFarms.isEmpty)
+          AppCard(onTap: () => context.go('/customer?tab=1'), child: const Row(children: [Icon(Icons.favorite_border_rounded, color: AppColors.primary), SizedBox(width: 10), Expanded(child: Text('Follow a local farm to see harvests here.')), Icon(Icons.chevron_right_rounded)]))
+        else ...followedFarms.take(4).map((f) => Padding(padding: const EdgeInsets.only(bottom: 8), child: FarmTile(farm: f))),
+        const SizedBox(height: 10),
         Row(children: [
           Expanded(child: _stat('${delivered.length}', 'Orders')),
           const SizedBox(width: 10),
@@ -118,7 +132,7 @@ class ProfileScreen extends ConsumerWidget {
         AppCard(
           color: AppColors.primarySoft,
           child: Row(children: [
-            const Text('🌱', style: TextStyle(fontSize: 26)),
+            const Icon(Icons.eco_outlined, color: AppColors.primary, size: 26),
             const SizedBox(width: 12),
             Expanded(child: Text('Your food has travelled only ${milesKm.toStringAsFixed(0)} km in total. Local food means fewer food-miles.', style: const TextStyle(fontSize: 13))),
           ]),

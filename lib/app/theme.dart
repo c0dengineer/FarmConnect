@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const primary = Color(0xFF2E7D32);
-  static const primaryDark = Color(0xFF1B5E20);
-  static const primarySoft = Color(0xFFE8F3E8);
-  static const accent = Color(0xFFF59E0B);
-  static const accentSoft = Color(0xFFFFF4D6);
-  static const bg = Color(0xFFF7F8F4);
-  static const text = Color(0xFF1C2420);
-  static const muted = Color(0xFF6B756E);
-  static const border = Color(0xFFE4E8E1);
+  static const primary = Color(0xFF033621);
+  static const primaryDark = Color(0xFF002112);
+  static const primarySoft = Color(0xFFE5EEE5);
+  static const accent = Color(0xFF9C431D);
+  static const accentSoft = Color(0xFFFFDBCE);
+  static const bg = Color(0xFFFCF9F4);
+  static const text = Color(0xFF1C1C19);
+  static const muted = Color(0xFF414943);
+  static const border = Color(0xFFC0C9C1);
   static const danger = Color(0xFFD64545);
   static const info = Color(0xFF2563EB);
 }
@@ -24,7 +24,7 @@ class AppTheme {
         OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: c, width: w));
 
     return base.copyWith(
-      textTheme: GoogleFonts.interTextTheme(base.textTheme)
+      textTheme: GoogleFonts.dmSansTextTheme(base.textTheme)
           .apply(bodyColor: AppColors.text, displayColor: AppColors.text),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.bg,
@@ -32,7 +32,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.text),
+        titleTextStyle: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.text),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -52,7 +52,7 @@ class AppTheme {
           elevation: 0,
           minimumSize: const Size(0, 50),
           shape: RoundedRectangleBorder(borderRadius: radius),
-          textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -61,7 +61,7 @@ class AppTheme {
           minimumSize: const Size(0, 50),
           side: const BorderSide(color: AppColors.border),
           shape: RoundedRectangleBorder(borderRadius: radius),
-          textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(

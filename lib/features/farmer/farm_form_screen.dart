@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -131,7 +131,7 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
               ),
               for (var i = 0; i < _urls.length; i++) _thumb(NetImage(_urls[i], width: 84, height: 84, radius: 14), () => setState(() => _urls.removeAt(i))),
               for (var i = 0; i < _files.length; i++)
-                _thumb(ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(File(_files[i].path), width: 84, height: 84, fit: BoxFit.cover)), () => setState(() => _files.removeAt(i))),
+                _thumb(FutureBuilder<List<int>>(future: _files[i].readAsBytes(), builder: (context, snapshot) => ClipRRect(borderRadius: BorderRadius.circular(14), child: snapshot.hasData ? Image.memory(Uint8List.fromList(snapshot.data!), width: 84, height: 84, fit: BoxFit.cover) : const SizedBox(width: 84, height: 84, child: Center(child: CircularProgressIndicator(strokeWidth: 2))))), () => setState(() => _files.removeAt(i))),
             ]),
           ),
           const SizedBox(height: 20),

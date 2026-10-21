@@ -126,7 +126,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
-                    label: Text(c == null ? 'All' : '${AppConstants.categoryEmoji[c]} $c'),
+                    label: c == null ? const Text('All') : Row(mainAxisSize: MainAxisSize.min, children: [Icon(AppConstants.categoryIcons[c], size: 16), const SizedBox(width: 5), Text(c)]),
                     selected: _category == c,
                     showCheckmark: false,
                     selectedColor: AppColors.primary,

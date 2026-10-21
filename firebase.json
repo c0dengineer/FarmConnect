@@ -1,5 +1,1 @@
-{
-  "firestore": { "rules": "firestore.rules" },
-  "storage": { "rules": "storage.rules" },
-  "functions": [{ "source": "functions", "codebase": "default" }]
-}
+{"firestore":{"rules":"firestore.rules"},"storage":{"rules":"storage.rules"},"functions":[{"source":"functions","codebase":"default"}],"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"reserve-8760a","configurations":{"web":"1:591309380280:web:6680f5dd716c1eefe7324d"}}}}}}

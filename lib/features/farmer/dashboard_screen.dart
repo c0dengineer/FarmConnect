@@ -86,7 +86,7 @@ class DashboardScreen extends ConsumerWidget {
               const Text('Trending on FarmConnect', style: TextStyle(fontWeight: FontWeight.w700)),
               const SizedBox(height: 10),
               Wrap(spacing: 8, runSpacing: 8, children: [
-                for (final e in trending.take(4)) Pill('${AppConstants.categoryEmoji[e.key] ?? ''} ${e.key} · ${e.value} sold'),
+                for (final e in trending.take(4)) Pill('${e.key} · ${e.value} sold', icon: AppConstants.categoryIcons[e.key]),
               ]),
               const SizedBox(height: 10),
               Text('Consider listing more ${trending.first.key.toLowerCase()} - customers are buying it the most.', style: const TextStyle(color: AppColors.muted, fontSize: 13)),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -28,7 +29,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final start = pos != null ? LatLng(pos.latitude, pos.longitude) : const LatLng(AppConstants.defaultLat, AppConstants.defaultLng);
 
     return Stack(children: [
-      GoogleMap(
+      if (!kIsWeb) GoogleMap(
         initialCameraPosition: CameraPosition(target: start, zoom: 11),
         onMapCreated: (c) => _ctrl = c,
         myLocationEnabled: pos != null,
@@ -46,7 +47,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               ),
             ),
         },
-      ),
+      ) else _WebFarmMap(farms: farms, pos: pos),
       SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -93,4 +94,60 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       ),
     ]);
   }
+}
+
+/// A web-safe neighborhood map surface. The native Google map is used on
+/// mobile; the web plugin requires a separately configured Maps JavaScript API.
+class _WebFarmMap extends StatelessWidget {
+  const _WebFarmMap({required this.farms, required this.pos});
+  final List<Farm> farms;
+  final dynamic pos;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        color: const Color(0xffe9eee5),
+        child: Stack(children: [
+          Positioned.fill(child: CustomPaint(painter: _MapRoadPainter())),
+          if (farms.isNotEmpty)
+            ...farms.take(8).toList().asMap().entries.map((e) => Positioned(
+                  left: 28 + (e.key % 3) * 104,
+                  top: 115 + (e.key ~/ 3) * 72,
+                  child: ActionChip(
+                    avatar: const Icon(Icons.storefront_outlined, size: 16),
+                    label: Text(e.value.farmName, overflow: TextOverflow.ellipsis),
+                    onPressed: () => context.push('/farm/${e.value.id}'),
+                  ),
+                )),
+          if (farms.isEmpty)
+            const Center(
+              child: Card(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('Nearby farms will appear here when growers join FarmConnect.'),
+                ),
+              ),
+            ),
+        ]),
+      );
+}
+
+class _MapRoadPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final road = Paint()..color = const Color(0xfffaf8f3)..strokeWidth = 14..style = PaintingStyle.stroke;
+    final thin = Paint()..color = const Color(0xffd5ddcf)..strokeWidth = 1;
+    for (var i = 1; i < 5; i++) {
+      final y = size.height * i / 5;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y - 25), road);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y - 25), thin);
+    }
+    for (var i = 1; i < 4; i++) {
+      final x = size.width * i / 4;
+      canvas.drawLine(Offset(x, 0), Offset(x + 35, size.height), road);
+      canvas.drawLine(Offset(x, 0), Offset(x + 35, size.height), thin);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

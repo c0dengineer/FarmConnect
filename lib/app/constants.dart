@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class AppConstants {
   static const appName = 'FarmConnect';
 
@@ -14,16 +16,16 @@ class AppConstants {
     'Other': 7,
   };
 
-  static const categoryEmoji = <String, String>{
-    'Vegetables': '🥦',
-    'Fruits': '🍎',
-    'Leafy Greens': '🥬',
-    'Dairy': '🥛',
-    'Eggs': '🥚',
-    'Grains': '🌾',
-    'Pulses': '🌰',
-    'Herbs & Spices': '🌿',
-    'Other': '🧺',
+  static const categoryIcons = <String, IconData>{
+    'Vegetables': Icons.eco_outlined,
+    'Fruits': Icons.local_florist_outlined,
+    'Leafy Greens': Icons.grass_outlined,
+    'Dairy': Icons.water_drop_outlined,
+    'Eggs': Icons.egg_alt_outlined,
+    'Grains': Icons.grain_outlined,
+    'Pulses': Icons.circle_outlined,
+    'Herbs & Spices': Icons.spa_outlined,
+    'Other': Icons.shopping_basket_outlined,
   };
 
   static List<String> get categories => categoryShelfLife.keys.toList();

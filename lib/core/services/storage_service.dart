@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -14,7 +13,7 @@ class StorageService {
     final urls = <String>[];
     for (final f in files) {
       final ref = FirebaseStorage.instance.ref('$folder/${const Uuid().v4()}.jpg');
-      await ref.putFile(File(f.path), SettableMetadata(contentType: 'image/jpeg'));
+      await ref.putData(await f.readAsBytes(), SettableMetadata(contentType: 'image/jpeg'));
       urls.add(await ref.getDownloadURL());
     }
     return urls;

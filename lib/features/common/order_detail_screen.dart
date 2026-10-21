@@ -28,7 +28,7 @@ class OrderDetailScreen extends ConsumerWidget {
     final isFarmer = user?.role == Roles.farmer;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Order details')),
+      appBar: AppBar(title: const Text('Order tracking')),
       body: async.whenUi((o) {
         if (o == null) return const EmptyState(icon: Icons.receipt_long_outlined, title: 'Order not found');
         final actions = isFarmer ? OrderStatus.farmerActions(o) : <(String, String, bool)>[];
@@ -48,7 +48,7 @@ class OrderDetailScreen extends ConsumerWidget {
               StatusPill(o.status),
             ]),
           ),
-          const SectionHeader('Progress'),
+          const SectionHeader('Field-to-fork timeline'),
           AppCard(
             child: Column(children: [
               for (var i = 0; i < o.history.length; i++)

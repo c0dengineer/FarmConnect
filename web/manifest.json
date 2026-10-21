@@ -1,0 +1,9 @@
+{
+  "name": "FarmConnect",
+  "short_name": "FarmConnect",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fcf9f4",
+  "theme_color": "#033621",
+  "description": "Fresh produce direct from local farms."
+}

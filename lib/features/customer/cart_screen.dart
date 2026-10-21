@@ -14,7 +14,7 @@ class CartScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My cart'),
+        title: const Text('Harvest Basket'),
         automaticallyImplyLeading: showBack,
         actions: [if (!cart.isEmpty) TextButton(onPressed: notifier.clear, child: const Text('Clear'))],
       ),
@@ -33,7 +33,7 @@ class CartScreen extends ConsumerWidget {
                     child: Row(children: [
                       const Icon(Icons.agriculture_rounded, size: 18, color: AppColors.primary),
                       const SizedBox(width: 8),
-                      Text('From ${cart.farmName}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text('Direct from ${cart.farmName}', style: const TextStyle(fontWeight: FontWeight.w700)),
                     ]),
                   ),
                   ...cart.items.values.map((it) {

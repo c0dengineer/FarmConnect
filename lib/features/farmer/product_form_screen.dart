@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -167,7 +167,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               for (var i = 0; i < _urls.length; i++) _thumb(NetImage(_urls[i], width: 84, height: 84, radius: 14), () => setState(() => _urls.removeAt(i))),
               for (var i = 0; i < _newFiles.length; i++)
                 _thumb(
-                  ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(File(_newFiles[i].path), width: 84, height: 84, fit: BoxFit.cover)),
+                  FutureBuilder<List<int>>(future: _newFiles[i].readAsBytes(), builder: (context, snapshot) => ClipRRect(borderRadius: BorderRadius.circular(14), child: snapshot.hasData ? Image.memory(Uint8List.fromList(snapshot.data!), width: 84, height: 84, fit: BoxFit.cover) : const SizedBox(width: 84, height: 84, child: Center(child: CircularProgressIndicator(strokeWidth: 2))))),
                   () => setState(() => _newFiles.removeAt(i)),
                 ),
             ]),
@@ -178,7 +178,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           DropdownButtonFormField<String>(
             value: _category,
             decoration: const InputDecoration(labelText: 'Category'),
-            items: AppConstants.categories.map((c) => DropdownMenuItem(value: c, child: Text('${AppConstants.categoryEmoji[c]}  $c'))).toList(),
+            items: AppConstants.categories.map((c) => DropdownMenuItem(value: c, child: Row(children: [Icon(AppConstants.categoryIcons[c], size: 18), const SizedBox(width: 8), Text(c)]))).toList(),
             onChanged: (v) => setState(() {
               _category = v!;
               if (!_isEdit) _shelf.text = '${AppConstants.categoryShelfLife[v]}';
