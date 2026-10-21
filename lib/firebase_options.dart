@@ -21,10 +21,7 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for ios - '
@@ -53,12 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyA6LfokTgf2YnxxZNB9mLajYenNwxRTKpg',
-    appId: '1:591309380280:web:6680f5dd716c1eefe7324d',
-    messagingSenderId: '591309380280',
-    projectId: 'reserve-8760a',
-    authDomain: 'reserve-8760a.firebaseapp.com',
-    storageBucket: 'reserve-8760a.firebasestorage.app',
-    measurementId: 'G-9MM7G2N7SX',
+    apiKey: 'AIzaSyDqtp8KoCiYWBbUK8ImpyhiVX34xqtNRwU',
+    appId: '1:494191511914:web:1bb998023ed0890fd47d13',
+    messagingSenderId: '494191511914',
+    projectId: 'farm-connect-92ccd',
+    authDomain: 'farm-connect-92ccd.firebaseapp.com',
+    storageBucket: 'farm-connect-92ccd.firebasestorage.app',
+    measurementId: 'G-GDJS3XSEWG',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyAunG9utMT05GxQGXGXZxWodsPje_lIqjI',
+    appId: '1:494191511914:android:86499a7dff170fffd47d13',
+    messagingSenderId: '494191511914',
+    projectId: 'farm-connect-92ccd',
+    storageBucket: 'farm-connect-92ccd.firebasestorage.app',
   );
 }
