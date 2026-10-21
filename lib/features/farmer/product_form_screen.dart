@@ -40,7 +40,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       _name.text = p.name;
       _desc.text = p.description;
       _price.text = p.price.toString();
-      _qty.text = p.quantityAvailable.toString();
+      _qty.text = formatQuantity(p.quantityAvailable);
       _shelf.text = p.shelfLifeDays.toString();
       _uglyPct.text = (p.uglyDiscountPercent == 0 ? 20 : p.uglyDiscountPercent).toString();
       _uglyReason.text = p.uglyReason;
@@ -115,11 +115,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         ratingAvg: old?.ratingAvg ?? 0,
         ratingCount: old?.ratingCount ?? 0,
         totalSold: old?.totalSold ?? 0,
-        quantityAvailable: int.parse(_qty.text),
+        quantityAvailable: parseQuantity(_qty.text)!,
         shelfLifeDays: _shelfDays,
         uglyDiscountPercent: _ugly ? (int.tryParse(_uglyPct.text) ?? 20).clamp(5, 70).toInt() : 0,
         uglyReason: _ugly ? _uglyReason.text.trim() : '',
-        imageUrls: [..._urls, ...uploaded],
+        imageUrls: StorageService.mergeImageUrls(_urls, uploaded),
         harvestDate: _harvest,
         createdAt: old?.createdAt ?? DateTime.now(),
         isUgly: _ugly,
@@ -210,8 +210,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           AppField(
             controller: _qty,
             label: 'Quantity available',
-            keyboardType: TextInputType.number,
-            validator: (v) => (int.tryParse(v ?? '') ?? -1) < 0 ? 'Enter a whole number' : null,
+            hint: 'For example: 2, 0.5, or 1/2',
+            keyboardType: TextInputType.text,
+            validator: (v) => parseQuantity(v) == null
+                ? 'Enter a positive quantity, such as 0.5 or 1/2'
+                : null,
           ),
           const SizedBox(height: 14),
           AppField(controller: _desc, label: 'Description (optional)', maxLines: 3),

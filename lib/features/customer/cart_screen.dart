@@ -51,7 +51,12 @@ class CartScreen extends ConsumerWidget {
                               Text('${money(p.effectivePrice)} / ${p.unit}', style: const TextStyle(color: AppColors.muted, fontSize: 12.5)),
                               const SizedBox(height: 8),
                               Row(children: [
-                                QtyStepper(qty: it.qty, max: p.quantityAvailable, onChanged: (v) => notifier.setQty(p.id, v)),
+                                QtyStepper(
+                                  qty: it.qty,
+                                  max: p.quantityAvailable,
+                                  step: quantityStepFor(p.unit),
+                                  onChanged: (v) => notifier.setQty(p.id, v),
+                                ),
                                 const Spacer(),
                                 Text(money(p.effectivePrice * it.qty), style: const TextStyle(fontWeight: FontWeight.w800)),
                               ]),

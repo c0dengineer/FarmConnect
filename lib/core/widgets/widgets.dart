@@ -1,10 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farmconnect/app/theme.dart';
 import 'package:farmconnect/core/utils/formatters.dart';
 import 'package:farmconnect/core/utils/freshness.dart';
+import 'package:farmconnect/core/utils/quantity_utils.dart';
 import 'package:farmconnect/models/farm.dart';
 import 'package:farmconnect/models/order.dart';
 import 'package:farmconnect/models/product.dart';
@@ -198,25 +198,51 @@ class NetImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ph = Container(
+    Widget placeholder({bool failed = false}) => Container(
       width: width,
       height: height,
       color: AppColors.primarySoft,
-      child: const Icon(Icons.eco_rounded, color: AppColors.primary),
+      alignment: Alignment.center,
+      child: Icon(
+        failed ? Icons.broken_image_outlined : Icons.eco_rounded,
+        color: AppColors.primary,
+      ),
     );
     final r = BorderRadius.circular(radius ?? 0);
-    if (url == null || url!.isEmpty) return ClipRRect(borderRadius: r, child: ph);
+    if (url == null || url!.isEmpty) {
+      return ClipRRect(borderRadius: r, child: placeholder());
+    }
+    final imageUrl = _browserReadyImageUrl(url!);
     return ClipRRect(
       borderRadius: r,
-      child: CachedNetworkImage(
-        imageUrl: url!,
+      child: Image.network(
+        imageUrl,
         width: width,
         height: height,
         fit: fit,
-        placeholder: (_, __) => ph,
-        errorWidget: (_, __, ___) => ph,
+        filterQuality: FilterQuality.medium,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded || frame != null) return child;
+          return placeholder();
+        },
+        errorBuilder: (_, __, ___) => placeholder(failed: true),
       ),
     );
+  }
+
+  String _browserReadyImageUrl(String source) {
+    final uri = Uri.tryParse(source);
+    if (uri == null || uri.host != 'res.cloudinary.com') return source;
+    const uploadPath = '/image/upload/';
+    if (!uri.path.contains(uploadPath) ||
+        uri.path.contains('/image/upload/f_auto')) {
+      return source;
+    }
+    return uri
+        .replace(
+          path: uri.path.replaceFirst(uploadPath, '${uploadPath}f_auto,q_auto/'),
+        )
+        .toString();
   }
 }
 
@@ -338,10 +364,17 @@ class SectionHeader extends StatelessWidget {
 }
 
 class QtyStepper extends StatelessWidget {
-  const QtyStepper({super.key, required this.qty, required this.onChanged, this.max});
-  final int qty;
-  final int? max;
-  final ValueChanged<int> onChanged;
+  const QtyStepper({
+    super.key,
+    required this.qty,
+    required this.onChanged,
+    this.max,
+    this.step = 1,
+  });
+  final double qty;
+  final double? max;
+  final double step;
+  final ValueChanged<double> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -358,10 +391,19 @@ class QtyStepper extends StatelessWidget {
             child: Icon(i, size: 18, color: f == null ? AppColors.muted : AppColors.primary),
           ),
         );
+    final minQty = max != null && max! < step ? max! : step;
+    final atMax = max != null && qty >= max!;
+    final nextQty = max == null ? qty + step : (qty + step).clamp(0, max!).toDouble();
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      btn(Icons.remove_rounded, () => onChanged(qty - 1)),
-      SizedBox(width: 36, child: Center(child: Text('$qty', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)))),
-      btn(Icons.add_rounded, (max != null && qty >= max!) ? null : () => onChanged(qty + 1)),
+      btn(Icons.remove_rounded, qty <= minQty ? null : () => onChanged(qty - step)),
+      SizedBox(
+        width: 42,
+        child: Center(
+          child: Text(formatQuantity(qty),
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+        ),
+      ),
+      btn(Icons.add_rounded, atMax ? null : () => onChanged(nextQty)),
     ]);
   }
 }
@@ -428,9 +470,10 @@ class ProductCard extends StatelessWidget {
 }
 
 class FarmTile extends StatelessWidget {
-  const FarmTile({super.key, required this.farm, this.distanceKm, this.width});
+  const FarmTile({super.key, required this.farm, this.distanceKm, this.width, this.isNearest = false});
   final Farm farm;
   final double? distanceKm, width;
+  final bool isNearest;
 
   @override
   Widget build(BuildContext context) {
@@ -450,6 +493,10 @@ class FarmTile extends StatelessWidget {
               const SizedBox(height: 4),
               RatingStars(farm.ratingAvg, count: farm.ratingCount, size: 14),
               const SizedBox(height: 2),
+              if (isNearest) const Padding(
+                padding: EdgeInsets.only(bottom: 3),
+                child: Pill('Nearest to you', icon: Icons.near_me_rounded),
+              ),
               Text(
                 [if (distanceKm != null) fmtDistance(distanceKm), farm.farmingType].join(' · '),
                 style: const TextStyle(color: AppColors.muted, fontSize: 12),

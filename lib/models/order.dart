@@ -55,8 +55,7 @@ class OrderStatus {
 class OrderItem {
   final String productId, name, unit;
   final String? imageUrl;
-  final double price;
-  final int qty;
+  final double price, qty;
   final bool isUgly;
   const OrderItem({
     required this.productId,
@@ -86,7 +85,7 @@ class OrderItem {
         unit: m['unit'] ?? '',
         imageUrl: m['imageUrl'],
         price: dbl(m['price']),
-        qty: integer(m['qty'], 1),
+        qty: dbl(m['qty'], 1),
         isUgly: m['isUgly'] ?? false,
       );
 }
@@ -98,10 +97,10 @@ class StatusEntry {
 }
 
 class FarmOrder {
-  final String id, customerUid, customerName, customerPhone, farmerUid, farmName;
+  final String id, customerUid, customerName, customerPhone, farmerUid, farmName, farmPhone;
   final List<OrderItem> items;
   final double subtotal, deliveryFee, total, distanceKm;
-  final String fulfillment, address, paymentMethod, paymentStatus, status, note;
+  final String fulfillment, address, paymentMethod, paymentStatus, paymentUpiId, status, note;
   final List<StatusEntry> history;
   final DateTime createdAt;
   final bool reviewed;
@@ -113,6 +112,7 @@ class FarmOrder {
     this.customerPhone = '',
     required this.farmerUid,
     required this.farmName,
+    this.farmPhone = '',
     required this.items,
     required this.subtotal,
     required this.deliveryFee,
@@ -122,6 +122,7 @@ class FarmOrder {
     required this.address,
     this.paymentMethod = 'cod',
     this.paymentStatus = 'pending',
+    this.paymentUpiId = '',
     required this.status,
     this.note = '',
     this.history = const [],
@@ -138,6 +139,7 @@ class FarmOrder {
       customerPhone: m['customerPhone'] ?? '',
       farmerUid: m['farmerUid'] ?? '',
       farmName: m['farmName'] ?? '',
+      farmPhone: m['farmPhone'] ?? '',
       items: (m['items'] is List)
           ? (m['items'] as List).map((e) => OrderItem.fromMap(Map<String, dynamic>.from(e))).toList()
           : [],
@@ -149,6 +151,7 @@ class FarmOrder {
       address: m['address'] ?? '',
       paymentMethod: m['paymentMethod'] ?? 'cod',
       paymentStatus: m['paymentStatus'] ?? 'pending',
+      paymentUpiId: m['paymentUpiId'] ?? '',
       status: m['status'] ?? OrderStatus.placed,
       note: m['note'] ?? '',
       history: (m['statusHistory'] is List)
@@ -168,6 +171,7 @@ class FarmOrder {
         'customerPhone': customerPhone,
         'farmerUid': farmerUid,
         'farmName': farmName,
+        'farmPhone': farmPhone,
         'items': items.map((e) => e.toMap()).toList(),
         'subtotal': subtotal,
         'deliveryFee': deliveryFee,
@@ -177,6 +181,7 @@ class FarmOrder {
         'address': address,
         'paymentMethod': paymentMethod,
         'paymentStatus': paymentStatus,
+        'paymentUpiId': paymentUpiId,
         'status': status,
         'note': note,
         'statusHistory': history.map((e) => {'status': e.status, 'at': Timestamp.fromDate(e.at)}).toList(),

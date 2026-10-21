@@ -12,6 +12,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String _fulfillment = 'delivery';
+  String _paymentMethod = 'cod';
   int _addrIndex = 0;
   final _note = TextEditingController();
   bool _busy = false;
@@ -53,8 +54,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       problem = 'This farm does not offer pickup. Choose delivery.';
     } else if (isDelivery && addr == null) {
       problem = 'Add a delivery address to continue.';
+    } else if (isDelivery && dist == null) {
+      problem = 'Choose a delivery location so FarmConnect can calculate the distance and fee.';
     } else if (isDelivery && dist != null && dist > farm.deliveryRadiusKm) {
       problem = 'You are ${fmtDistance(dist)} away - outside this farm\'s ${farm.deliveryRadiusKm.toInt()} km delivery range.';
+    } else if (_paymentMethod == 'upi' && (farm?.upiId.isEmpty ?? true)) {
+      problem = 'This farm has not added a UPI ID. Choose cash or contact the farmer.';
     }
 
     Future<void> place() async {
@@ -68,6 +73,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           customerPhone: user.phone,
           farmerUid: cart.farmerUid!,
           farmName: cart.farmName!,
+          farmPhone: farm!.phone,
           items: cart.items.values
               .map((c) => OrderItem(
                     productId: c.product.id,
@@ -85,6 +91,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           distanceKm: dist ?? 0,
           fulfillment: _fulfillment,
           address: isDelivery ? addr!.full : 'Pickup at ${farm!.address.isEmpty ? farm.farmName : farm.address}',
+          paymentMethod: _paymentMethod,
+          paymentUpiId: _paymentMethod == 'upi' ? farm!.upiId : '',
           status: OrderStatus.placed,
           note: _note.text.trim(),
           history: [StatusEntry(OrderStatus.placed, now)],
@@ -174,20 +182,34 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             const Text('Payment', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
             const SizedBox(height: 10),
             AppCard(
+              padding: EdgeInsets.zero,
               child: Column(children: [
-                const Row(children: [
-                  Icon(Icons.payments_outlined, color: AppColors.primary),
-                  SizedBox(width: 12),
-                  Expanded(child: Text('Cash on delivery / pickup', style: TextStyle(fontWeight: FontWeight.w600))),
-                  Icon(Icons.check_circle_rounded, color: AppColors.primary),
-                ]),
-                const Divider(height: 24),
-                Row(children: [
-                  const Icon(Icons.qr_code_2_rounded, color: AppColors.muted),
-                  const SizedBox(width: 12),
-                  const Expanded(child: Text('UPI / Cards', style: TextStyle(color: AppColors.muted))),
-                  const Pill('Coming soon', color: AppColors.muted),
-                ]),
+                RadioListTile<String>(
+                  value: 'cod',
+                  groupValue: _paymentMethod,
+                  onChanged: (v) => setState(() => _paymentMethod = v!),
+                  title: const Text('Cash on delivery / pickup'),
+                  secondary: const Icon(Icons.payments_outlined, color: AppColors.primary),
+                  activeColor: AppColors.primary,
+                ),
+                const Divider(height: 1),
+                RadioListTile<String>(
+                  value: 'upi',
+                  groupValue: _paymentMethod,
+                  onChanged: farm?.upiId.isNotEmpty == true
+                      ? (v) => setState(() => _paymentMethod = v!)
+                      : null,
+                  title: const Text('UPI direct to the farm'),
+                  subtitle: Text(farm?.upiId.isNotEmpty == true
+                      ? farm!.upiId
+                      : 'Farmer has not added a UPI ID'),
+                  secondary: const Icon(Icons.qr_code_2_rounded, color: AppColors.primary),
+                  activeColor: AppColors.primary,
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 14),
+                  child: Text('UPI transfers go directly to the farm. The farmer confirms payment after checking their bank or UPI app.', style: TextStyle(color: AppColors.muted, fontSize: 12)),
+                ),
               ]),
             ),
             const SizedBox(height: 18),
@@ -196,8 +218,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             AppCard(
               child: Column(children: [
                 _row('Subtotal (${cart.count} items)', money(cart.subtotal)),
-                const SizedBox(height: 8),
-                _row(dist == null ? 'Delivery fee' : 'Delivery fee (${fmtDistance(dist)})', isDelivery ? money(fee) : 'Free'),
+                if (isDelivery) ...[
+                  const SizedBox(height: 8),
+                  _row('Base delivery fee', money(AppConstants.baseDeliveryFee)),
+                  if (dist != null) ...[
+                    const SizedBox(height: 6),
+                    _row(
+                      'Distance (${fmtDistance(dist)} × ${money(AppConstants.perKmDeliveryFee)}/km)',
+                      money(AppConstants.perKmDeliveryFee * dist),
+                    ),
+                  ],
+                  const Divider(height: 20),
+                  _row('Delivery fee', money(fee)),
+                ] else ...[
+                  const SizedBox(height: 8),
+                  _row('Delivery fee', 'Free'),
+                ],
                 const Divider(height: 24),
                 _row('Total', money(total), bold: true),
               ]),

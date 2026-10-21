@@ -54,11 +54,15 @@ class OrderList extends StatelessWidget {
           onTap: () => context.push('/order/${o.id}'),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
+              if (o.items.isNotEmpty) ...[
+                NetImage(o.items.first.imageUrl, width: 48, height: 48, radius: 10),
+                const SizedBox(width: 10),
+              ],
               Expanded(child: Text(showCustomer ? o.customerName : o.farmName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15))),
               StatusPill(o.status),
             ]),
             const SizedBox(height: 6),
-            Text(o.items.map((e) => '${e.qty}× ${e.name}').join(', '), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, fontSize: 13)),
+            Text(o.items.map((e) => '${formatQuantity(e.qty)}× ${e.name}').join(', '), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, fontSize: 13)),
             const SizedBox(height: 10),
             Row(children: [
               Text(fmtDateTime(o.createdAt), style: const TextStyle(color: AppColors.muted, fontSize: 12)),

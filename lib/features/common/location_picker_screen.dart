@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:farmconnect/all.dart';
 
 /// Full-screen map. Tap anywhere to drop the pin, then confirm. Pops a LatLng.
@@ -13,9 +13,16 @@ class LocationPickerScreen extends StatefulWidget {
 }
 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
-  GoogleMapController? _ctrl;
+  final MapController _ctrl = MapController();
   LatLng? _picked;
   late LatLng _start;
+  bool _mapReady = false;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -34,7 +41,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     final p = LatLng(pos.latitude, pos.longitude);
     if (!mounted) return;
     setState(() => _picked = p);
-    _ctrl?.animateCamera(CameraUpdate.newLatLngZoom(p, 16));
+    if (_mapReady) _ctrl.move(p, 16);
   }
 
   @override
@@ -42,18 +49,34 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Choose location')),
       body: Stack(children: [
-        if (!kIsWeb) GoogleMap(
-          initialCameraPosition: CameraPosition(target: _start, zoom: 14),
-          onMapCreated: (c) => _ctrl = c,
-          onTap: (p) => setState(() => _picked = p),
-          markers: {if (_picked != null) Marker(markerId: const MarkerId('p'), position: _picked!)},
-          myLocationEnabled: true,
-          myLocationButtonEnabled: false,
-          zoomControlsEnabled: false,
-        ) else _WebLocationSurface(
-          initial: _start,
-          picked: _picked,
-          onPick: (p) => setState(() => _picked = p),
+        FlutterMap(
+          mapController: _ctrl,
+          options: MapOptions(
+            initialCenter: _start,
+            initialZoom: 14,
+            onMapReady: () => _mapReady = true,
+            onTap: (_, p) => setState(() => _picked = p),
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.farmconnect.app',
+              maxZoom: 19,
+            ),
+            if (_picked != null)
+              MarkerLayer(markers: [
+                Marker(
+                  point: _picked!,
+                  width: 48,
+                  height: 48,
+                  child: const Icon(Icons.location_pin, size: 44, color: AppColors.primary),
+                ),
+              ]),
+            const RichAttributionWidget(
+              alignment: AttributionAlignment.bottomLeft,
+              attributions: [TextSourceAttribution('© OpenStreetMap contributors')],
+            ),
+          ],
         ),
         Positioned(
           right: 16,
@@ -80,41 +103,4 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       ]),
     );
   }
-}
-
-class _WebLocationSurface extends StatelessWidget {
-  const _WebLocationSurface({required this.initial, required this.picked, required this.onPick});
-  final LatLng initial;
-  final LatLng? picked;
-  final ValueChanged<LatLng> onPick;
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) => GestureDetector(
-        onTapDown: (event) {
-          final dx = (event.localPosition.dx / box.maxWidth - .5) * .06;
-          final dy = (.5 - event.localPosition.dy / box.maxHeight) * .06;
-          onPick(LatLng(initial.latitude + dy, initial.longitude + dx));
-        },
-        child: Container(
-          color: const Color(0xffe9eee5),
-          child: Stack(children: [
-            const Positioned.fill(child: CustomPaint(painter: _LocationRoadPainter())),
-            const Positioned(top: 22, left: 20, right: 20, child: Card(child: Padding(padding: EdgeInsets.all(12), child: Text('Tap the map area to place your farm or delivery pin.')))),
-            if (picked != null) Center(child: Icon(Icons.location_on, size: 42, color: AppColors.primary)),
-          ]),
-        ),
-      ));
-}
-
-class _LocationRoadPainter extends CustomPainter {
-  const _LocationRoadPainter();
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = const Color(0xfffaf8f3)..strokeWidth = 18..style = PaintingStyle.stroke;
-    canvas.drawLine(Offset(0, size.height * .27), Offset(size.width, size.height * .38), p);
-    canvas.drawLine(Offset(size.width * .72, 0), Offset(size.width * .34, size.height), p);
-    canvas.drawLine(Offset(0, size.height * .78), Offset(size.width, size.height * .67), p);
-  }
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

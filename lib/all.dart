@@ -4,6 +4,7 @@ export 'app/theme.dart';
 export 'core/utils/distance_utils.dart';
 export 'core/utils/formatters.dart';
 export 'core/utils/freshness.dart';
+export 'core/utils/quantity_utils.dart';
 export 'core/services/location_service.dart';
 export 'core/services/storage_service.dart';
 export 'core/services/notification_service.dart';

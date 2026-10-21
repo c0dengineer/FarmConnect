@@ -173,9 +173,16 @@ class HomeScreen extends ConsumerWidget {
                     return distanceKm(pos, a.lat, a.lng)!.compareTo(distanceKm(pos, b.lat, b.lng)!);
                   }))
                   .take(5)
-                  .map((f) => Padding(
+                  .toList()
+                  .asMap()
+                  .entries
+                  .map((entry) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: FarmTile(farm: f, distanceKm: distanceKm(pos, f.lat, f.lng)),
+                        child: FarmTile(
+                          farm: entry.value,
+                          distanceKm: distanceKm(pos, entry.value.lat, entry.value.lng),
+                          isNearest: pos != null && entry.key == 0,
+                        ),
                       ))),
             ],
           ],

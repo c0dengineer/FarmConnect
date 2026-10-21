@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:farmconnect/all.dart';
 
@@ -19,6 +19,7 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
   final _desc = TextEditingController();
   final _phone = TextEditingController();
   final _address = TextEditingController();
+  final _upi = TextEditingController();
   final _radius = TextEditingController(text: '15');
   String _type = 'traditional';
   bool _delivery = true, _pickup = true, _busy = false, _loaded = false, _isNew = true;
@@ -28,7 +29,7 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _desc, _phone, _address, _radius]) {
+    for (final c in [_name, _desc, _phone, _address, _radius, _upi]) {
       c.dispose();
     }
     super.dispose();
@@ -46,6 +47,7 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
     _desc.text = f.description;
     _phone.text = f.phone;
     _address.text = f.address;
+    _upi.text = f.upiId;
     _radius.text = f.deliveryRadiusKm.toInt().toString();
     _type = f.farmingType;
     _delivery = f.deliveryAvailable;
@@ -78,7 +80,8 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
         farmingType: _type,
         phone: _phone.text.trim(),
         address: _address.text.trim(),
-        photoUrls: [..._urls, ...uploaded],
+        upiId: _upi.text.trim(),
+        photoUrls: StorageService.mergeImageUrls(_urls, uploaded),
         lat: _loc!.latitude,
         lng: _loc!.longitude,
         deliveryRadiusKm: double.tryParse(_radius.text) ?? 15,
@@ -171,6 +174,24 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
           ),
           const SizedBox(height: 14),
           AppField(controller: _address, label: 'Farm address', maxLines: 2),
+          const SizedBox(height: 14),
+          AppField(
+            controller: _upi,
+            label: 'UPI ID for direct payments (optional)',
+            hint: 'name@bank',
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (v.isEmpty) return null;
+              return RegExp(r'^[\w.\-]{2,256}@[\w]{2,64}$').hasMatch(v)
+                  ? null
+                  : 'Enter a valid UPI ID, such as name@bank';
+            },
+          ),
+          const Padding(
+            padding: EdgeInsets.only(top: 5),
+            child: Text('Customers pay this UPI ID directly. You will confirm receipt yourself.', style: TextStyle(color: AppColors.muted, fontSize: 12)),
+          ),
           const SizedBox(height: 8),
           SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: AppColors.primary, title: const Text('Offer delivery', style: TextStyle(fontWeight: FontWeight.w600)), value: _delivery, onChanged: (v) => setState(() => _delivery = v)),
           if (_delivery) AppField(controller: _radius, label: 'Delivery radius (km)', keyboardType: TextInputType.number),

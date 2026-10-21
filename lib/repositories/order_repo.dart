@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:farmconnect/core/utils/quantity_utils.dart';
 import 'package:farmconnect/models/order.dart';
 
 class OrderRepo {
@@ -31,8 +32,12 @@ class OrderRepo {
       for (final it in o.items) {
         final s = snaps[it.productId]!;
         if (!s.exists) throw Exception('${it.name} is no longer available.');
-        final q = ((s.data()?['quantityAvailable'] ?? 0) as num).toInt();
-        if (q < it.qty) throw Exception(q == 0 ? '${it.name} is sold out.' : 'Only $q left of ${it.name}.');
+        final q = ((s.data()?['quantityAvailable'] ?? 0) as num).toDouble();
+        if (q + 0.000001 < it.qty) {
+          throw Exception(q == 0
+              ? '${it.name} is sold out.'
+              : 'Only ${formatQuantity(q)} left of ${it.name}.');
+        }
       }
       for (final it in o.items) {
         tx.update(_db.collection('products').doc(it.productId), {
@@ -74,6 +79,15 @@ class OrderRepo {
         });
       }
       tx.update(ref, update);
+    });
+  }
+
+  /// For free direct-to-farm UPI, the farmer confirms receipt against their
+  /// own UPI/bank statement. This app never treats the customer's tap as proof.
+  Future<void> confirmDirectUpiPayment(String orderId) async {
+    await _col.doc(orderId).update({
+      'paymentStatus': 'paid',
+      'updatedAt': Timestamp.now(),
     });
   }
 }

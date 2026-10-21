@@ -31,7 +31,9 @@ service cloud.firestore {
     match /products/{id} {
       allow read: if signedIn();
       allow create: if isFarmer() && request.resource.data.farmerUid == request.auth.uid
-                    && request.resource.data.price > 0;
+                    && request.resource.data.price > 0
+                    && request.resource.data.quantityAvailable is number
+                    && request.resource.data.quantityAvailable > 0;
       allow update: if signedIn() && (
         resource.data.farmerUid == request.auth.uid || isAdmin() ||
         onlyChanges(['quantityAvailable','totalSold','ratingAvg','ratingCount','updatedAt']));
@@ -42,8 +44,22 @@ service cloud.firestore {
       allow create: if signedIn() && request.resource.data.customerUid == request.auth.uid;
       allow read: if signedIn() && (resource.data.customerUid == request.auth.uid
                                  || resource.data.farmerUid == request.auth.uid || isAdmin());
-      allow update: if signedIn() && (resource.data.customerUid == request.auth.uid
-                                   || resource.data.farmerUid == request.auth.uid || isAdmin());
+      allow update: if isAdmin()
+                    || (signedIn()
+                        && resource.data.customerUid == request.auth.uid
+                        && resource.data.status == 'placed'
+                        && request.resource.data.status == 'cancelled'
+                        && onlyChanges(['status','statusHistory','updatedAt']))
+                    || (signedIn()
+                        && resource.data.farmerUid == request.auth.uid
+                        && onlyChanges(['status','statusHistory','updatedAt','paymentStatus'])
+                        && request.resource.data.status in ['placed','accepted','rejected','packed','out_for_delivery','delivered','cancelled']
+                        && (request.resource.data.paymentStatus == resource.data.paymentStatus
+                            || (resource.data.paymentMethod == 'upi'
+                                && request.resource.data.paymentStatus == 'paid')
+                            || (resource.data.paymentMethod == 'cod'
+                                && request.resource.data.status == 'delivered'
+                                && request.resource.data.paymentStatus == 'paid')));
     }
 
     match /reviews/{id} {

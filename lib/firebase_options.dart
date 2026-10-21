@@ -58,7 +58,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'farm-connect-92ccd.firebasestorage.app',
     measurementId: 'G-GDJS3XSEWG',
   );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAunG9utMT05GxQGXGXZxWodsPje_lIqjI',
     appId: '1:494191511914:android:86499a7dff170fffd47d13',

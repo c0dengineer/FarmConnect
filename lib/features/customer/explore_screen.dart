@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:farmconnect/all.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
@@ -12,8 +13,14 @@ class ExploreScreen extends ConsumerStatefulWidget {
 }
 
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
-  GoogleMapController? _ctrl;
+  final MapController _ctrl = MapController();
   double? _radius; // null = all
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,25 +36,43 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final start = pos != null ? LatLng(pos.latitude, pos.longitude) : const LatLng(AppConstants.defaultLat, AppConstants.defaultLng);
 
     return Stack(children: [
-      if (!kIsWeb) GoogleMap(
-        initialCameraPosition: CameraPosition(target: start, zoom: 11),
-        onMapCreated: (c) => _ctrl = c,
-        myLocationEnabled: pos != null,
-        myLocationButtonEnabled: false,
-        zoomControlsEnabled: false,
-        markers: {
-          for (final f in farms)
-            Marker(
-              markerId: MarkerId(f.id),
-              position: LatLng(f.lat, f.lng),
-              infoWindow: InfoWindow(
-                title: f.farmName,
-                snippet: pos == null ? f.farmingType : '${fmtDistance(distanceKm(pos, f.lat, f.lng))} away · tap to open',
-                onTap: () => context.push('/farm/${f.id}'),
+      FlutterMap(
+        mapController: _ctrl,
+        options: MapOptions(initialCenter: start, initialZoom: 11),
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.farmconnect.app',
+            maxZoom: 19,
+          ),
+          MarkerLayer(markers: [
+            if (pos != null)
+              Marker(
+                point: start,
+                width: 42,
+                height: 42,
+                child: const DecoratedBox(
+                  decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  child: Icon(Icons.person_pin_circle_rounded, color: Colors.blueGrey, size: 38),
+                ),
               ),
-            ),
-        },
-      ) else _WebFarmMap(farms: farms, pos: pos),
+            for (final f in farms)
+              Marker(
+                point: LatLng(f.lat, f.lng),
+                width: 48,
+                height: 48,
+                child: GestureDetector(
+                  onTap: () => _showFarm(context, f, pos),
+                  child: const Icon(Icons.location_pin, color: AppColors.primary, size: 44),
+                ),
+              ),
+          ]),
+          const RichAttributionWidget(
+            alignment: AttributionAlignment.bottomLeft,
+            attributions: [TextSourceAttribution('© OpenStreetMap contributors')],
+          ),
+        ],
+      ),
       SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -85,8 +110,13 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   itemBuilder: (_, i) {
                     final f = farms[i];
                     return GestureDetector(
-                      onLongPress: () => _ctrl?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(f.lat, f.lng), 14)),
-                      child: FarmTile(farm: f, width: 290, distanceKm: distanceKm(pos, f.lat, f.lng)),
+                      onLongPress: () => _ctrl.move(LatLng(f.lat, f.lng), 14),
+                      child: FarmTile(
+                        farm: f,
+                        width: 290,
+                        distanceKm: distanceKm(pos, f.lat, f.lng),
+                        isNearest: pos != null && i == 0,
+                      ),
                     );
                   },
                 ),
@@ -96,58 +126,25 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   }
 }
 
-/// A web-safe neighborhood map surface. The native Google map is used on
-/// mobile; the web plugin requires a separately configured Maps JavaScript API.
-class _WebFarmMap extends StatelessWidget {
-  const _WebFarmMap({required this.farms, required this.pos});
-  final List<Farm> farms;
-  final dynamic pos;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        color: const Color(0xffe9eee5),
-        child: Stack(children: [
-          Positioned.fill(child: CustomPaint(painter: _MapRoadPainter())),
-          if (farms.isNotEmpty)
-            ...farms.take(8).toList().asMap().entries.map((e) => Positioned(
-                  left: 28 + (e.key % 3) * 104,
-                  top: 115 + (e.key ~/ 3) * 72,
-                  child: ActionChip(
-                    avatar: const Icon(Icons.storefront_outlined, size: 16),
-                    label: Text(e.value.farmName, overflow: TextOverflow.ellipsis),
-                    onPressed: () => context.push('/farm/${e.value.id}'),
-                  ),
-                )),
-          if (farms.isEmpty)
-            const Center(
-              child: Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('Nearby farms will appear here when growers join FarmConnect.'),
-                ),
-              ),
-            ),
+void _showFarm(BuildContext context, Farm farm, Position? pos) {
+  final distance = distanceKm(pos, farm.lat, farm.lng);
+  showModalBottomSheet<void>(
+    context: context,
+    builder: (context) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(farm.farmName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          Text('Farm coordinates: ${farm.lat.toStringAsFixed(5)}, ${farm.lng.toStringAsFixed(5)}'),
+          if (distance != null) Text('${fmtDistance(distance)} from your location'),
+          const SizedBox(height: 12),
+          PrimaryButton(label: 'View farm and produce', onPressed: () {
+            Navigator.pop(context);
+            GoRouter.of(context).push('/farm/${farm.id}');
+          }),
         ]),
-      );
-}
-
-class _MapRoadPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final road = Paint()..color = const Color(0xfffaf8f3)..strokeWidth = 14..style = PaintingStyle.stroke;
-    final thin = Paint()..color = const Color(0xffd5ddcf)..strokeWidth = 1;
-    for (var i = 1; i < 5; i++) {
-      final y = size.height * i / 5;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y - 25), road);
-      canvas.drawLine(Offset(0, y), Offset(size.width, y - 25), thin);
-    }
-    for (var i = 1; i < 4; i++) {
-      final x = size.width * i / 4;
-      canvas.drawLine(Offset(x, 0), Offset(x + 35, size.height), road);
-      canvas.drawLine(Offset(x, 0), Offset(x + 35, size.height), thin);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+      ),
+    ),
+  );
 }

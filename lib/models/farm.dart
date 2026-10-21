@@ -3,7 +3,7 @@ import 'model_utils.dart';
 
 class Farm {
   final String id; // equals the farmer uid
-  final String farmName, ownerName, description, farmingType, phone, address;
+  final String farmName, ownerName, description, farmingType, phone, address, upiId;
   final List<String> photoUrls;
   final double lat, lng, deliveryRadiusKm, ratingAvg;
   final int ratingCount;
@@ -18,6 +18,7 @@ class Farm {
     this.farmingType = 'traditional',
     this.phone = '',
     this.address = '',
+    this.upiId = '',
     this.photoUrls = const [],
     required this.lat,
     required this.lng,
@@ -40,6 +41,7 @@ class Farm {
       farmingType: m['farmingType'] ?? 'traditional',
       phone: m['phone'] ?? '',
       address: m['address'] ?? '',
+      upiId: m['upiId'] ?? '',
       photoUrls: strList(m['photoUrls']),
       lat: dbl(m['lat']),
       lng: dbl(m['lng']),
@@ -61,6 +63,7 @@ class Farm {
         'farmingType': farmingType,
         'phone': phone,
         'address': address,
+        'upiId': upiId,
         'photoUrls': photoUrls,
         'lat': lat,
         'lng': lng,

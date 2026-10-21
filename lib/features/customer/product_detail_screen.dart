@@ -11,7 +11,7 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
-  int _qty = 1;
+  double _qty = 1;
   int _page = 0;
 
   @override
@@ -26,7 +26,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         final fav = user?.favoriteProductIds.contains(p.id) ?? false;
         final dist = distanceKm(pos, p.lat, p.lng);
         final reviews = ref.watch(productReviewsProvider(p.id)).valueOrNull ?? [];
-        final qty = _qty.clamp(1, p.quantityAvailable < 1 ? 1 : p.quantityAvailable).toInt();
+        final qty = p.quantityAvailable <= 0
+            ? 1.0
+            : _qty.clamp(0.001, p.quantityAvailable).toDouble();
         final canBuy = p.isBuyable;
 
         return Column(children: [
@@ -176,7 +178,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + MediaQuery.of(context).padding.bottom),
             decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: AppColors.border))),
             child: Row(children: [
-              if (canBuy) QtyStepper(qty: qty, max: p.quantityAvailable, onChanged: (v) => setState(() => _qty = v.clamp(1, p.quantityAvailable).toInt())),
+              if (canBuy)
+                QtyStepper(
+                  qty: qty,
+                  max: p.quantityAvailable,
+                  step: quantityStepFor(p.unit),
+                  onChanged: (v) => setState(() => _qty = v),
+                ),
               if (canBuy) const SizedBox(width: 16),
               Expanded(
                 child: PrimaryButton(

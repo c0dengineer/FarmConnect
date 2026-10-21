@@ -106,7 +106,7 @@ final allUsersAdminProvider = StreamProvider<List<AppUser>>((ref) => ref.watch(a
 // ---- Cart (kept in memory; one farmer per cart) ----
 class CartItem {
   final Product product;
-  final int qty;
+  final double qty;
   const CartItem(this.product, this.qty);
 }
 
@@ -115,7 +115,7 @@ class CartState {
   final Map<String, CartItem> items;
   const CartState({this.farmerUid, this.farmName, this.items = const {}});
 
-  int get count => items.values.fold(0, (s, e) => s + e.qty);
+  int get count => items.length;
   double get subtotal => items.values.fold(0.0, (s, e) => s + e.product.effectivePrice * e.qty);
   bool get isEmpty => items.isEmpty;
 }
@@ -125,21 +125,24 @@ class CartNotifier extends StateNotifier<CartState> {
 
   bool conflicts(Product p) => state.items.isNotEmpty && state.farmerUid != p.farmerUid;
 
-  void add(Product p, {int qty = 1}) {
+  void add(Product p, {double qty = 1}) {
     if (conflicts(p)) clear();
     final items = Map<String, CartItem>.from(state.items);
     final current = items[p.id]?.qty ?? 0;
-    final next = (current + qty).clamp(1, p.quantityAvailable).toInt();
+    final next = (current + qty).clamp(0.001, p.quantityAvailable).toDouble();
     items[p.id] = CartItem(p, next);
     state = CartState(farmerUid: p.farmerUid, farmName: p.farmName, items: items);
   }
 
-  void setQty(String id, int qty) {
+  void setQty(String id, double qty) {
     final item = state.items[id];
     if (item == null) return;
     if (qty <= 0) return remove(id);
     final items = Map<String, CartItem>.from(state.items);
-    items[id] = CartItem(item.product, qty.clamp(1, item.product.quantityAvailable).toInt());
+    items[id] = CartItem(
+      item.product,
+      qty.clamp(0.001, item.product.quantityAvailable).toDouble(),
+    );
     state = CartState(farmerUid: state.farmerUid, farmName: state.farmName, items: items);
   }
 

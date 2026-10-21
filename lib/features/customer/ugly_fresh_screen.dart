@@ -15,7 +15,7 @@ class UglyFreshScreen extends ConsumerWidget {
         .where((o) => o.status == OrderStatus.delivered)
         .expand((o) => o.items)
         .where((i) => i.isUgly)
-        .fold<int>(0, (s, i) => s + i.qty);
+        .fold<double>(0, (s, i) => s + i.qty);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Ugly but Fresh')),
@@ -35,7 +35,7 @@ class UglyFreshScreen extends ConsumerWidget {
                   Text(
                     rescued == 0
                         ? 'These items are just as fresh and tasty - only the shape or size is imperfect.'
-                        : 'You have rescued $rescued item${rescued == 1 ? '' : 's'} from going to waste. Thank you!',
+                        : 'You have rescued ${formatQuantity(rescued)} item${rescued == 1 ? '' : 's'} from going to waste. Thank you!',
                     style: const TextStyle(fontSize: 12.5),
                   ),
                 ]),

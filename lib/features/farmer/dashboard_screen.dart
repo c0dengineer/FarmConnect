@@ -27,7 +27,7 @@ class DashboardScreen extends ConsumerWidget {
     final aging = mine.where((p) => p.isAvailable && !p.isPreOrder && p.freshness > 0 && p.freshness < 40).toList();
 
     // Demand insight: which categories sell the most across the marketplace.
-    final demand = <String, int>{};
+    final demand = <String, double>{};
     for (final p in allProducts) {
       demand[p.category] = (demand[p.category] ?? 0) + p.totalSold;
     }
@@ -115,7 +115,7 @@ class DashboardScreen extends ConsumerWidget {
                 child: Row(children: [
                   const Icon(Icons.inventory_outlined, color: AppColors.accent),
                   const SizedBox(width: 12),
-                  Expanded(child: Text('${p.name}: only ${p.quantityAvailable} ${p.unit} left.', style: const TextStyle(fontSize: 13))),
+                  Expanded(child: Text('${p.name}: only ${formatQuantity(p.quantityAvailable)} ${p.unit} left.', style: const TextStyle(fontSize: 13))),
                 ]),
               ),
             ),

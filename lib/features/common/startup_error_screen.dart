@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:farmconnect/app/theme.dart';
 
@@ -8,6 +10,7 @@ class StartupErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMissingConfig = error is UnsupportedError;
+    final isTimeout = error is TimeoutException;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -27,7 +30,9 @@ class StartupErrorScreen extends StatelessWidget {
                   Text(
                     isMissingConfig
                         ? 'Firebase is not configured for this platform. From the project folder, run:'
-                        : 'Firebase initialization failed. Check your Firebase configuration and restart the app.',
+                        : isTimeout
+                            ? 'Firebase did not respond within 20 seconds. Check your connection and project configuration, then reload FarmConnect.'
+                            : 'Firebase initialization failed. Check your Firebase configuration and restart the app.',
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: AppColors.muted, height: 1.5),
                   ),

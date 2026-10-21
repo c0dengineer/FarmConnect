@@ -4,8 +4,8 @@ import 'model_utils.dart';
 
 class Product {
   final String id, farmerUid, farmName, name, category, description, unit;
-  final double price, lat, lng, ratingAvg;
-  final int quantityAvailable, shelfLifeDays, uglyDiscountPercent, ratingCount, totalSold;
+  final double price, lat, lng, ratingAvg, quantityAvailable, totalSold;
+  final int shelfLifeDays, uglyDiscountPercent, ratingCount;
   final List<String> imageUrls;
   final DateTime harvestDate, createdAt;
   final bool isUgly, isOrganic, isAvailable, isPreOrder;
@@ -58,8 +58,8 @@ class Product {
       lng: dbl(m['lng']),
       ratingAvg: dbl(m['ratingAvg']),
       ratingCount: integer(m['ratingCount']),
-      totalSold: integer(m['totalSold']),
-      quantityAvailable: integer(m['quantityAvailable']),
+      totalSold: dbl(m['totalSold']),
+      quantityAvailable: dbl(m['quantityAvailable']),
       shelfLifeDays: integer(m['shelfLifeDays'], 7),
       uglyDiscountPercent: integer(m['uglyDiscountPercent']),
       uglyReason: m['uglyReason'] ?? '',

@@ -51,7 +51,7 @@ class MyProductsScreen extends ConsumerWidget {
                       Text('${money(p.effectivePrice)} / ${p.unit}', style: const TextStyle(color: AppColors.muted, fontSize: 13)),
                       const SizedBox(height: 6),
                       Wrap(spacing: 6, runSpacing: 4, children: [
-                        Pill(soldOut ? 'Out of stock' : '${p.quantityAvailable} ${p.unit} left', color: soldOut ? AppColors.danger : AppColors.primary),
+                        Pill(soldOut ? 'Out of stock' : '${formatQuantity(p.quantityAvailable)} ${p.unit} left', color: soldOut ? AppColors.danger : AppColors.primary),
                         Pill('${p.freshness}% fresh', color: freshnessColor(p.freshness)),
                         if (p.isUgly) const Pill('Ugly', color: AppColors.accent),
                       ]),

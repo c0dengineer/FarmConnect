@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farmconnect/all.dart';
@@ -74,7 +74,7 @@ class ProfileScreen extends ConsumerWidget {
     if (u == null) return const LoadingView();
     final delivered = orders.where((o) => o.status == OrderStatus.delivered).toList();
     final spent = delivered.fold<double>(0, (s, o) => s + o.total);
-    final rescued = delivered.expand((o) => o.items).where((i) => i.isUgly).fold<int>(0, (s, i) => s + i.qty);
+    final rescued = delivered.expand((o) => o.items).where((i) => i.isUgly).fold<double>(0, (s, i) => s + i.qty);
     final milesKm = delivered.fold<double>(0, (s, o) => s + o.distanceKm);
     final farms = ref.watch(farmsProvider).valueOrNull ?? [];
     final followedFarms = farms.where((f) => u.followedFarmIds.contains(f.id)).toList();
@@ -126,7 +126,7 @@ class ProfileScreen extends ConsumerWidget {
           const SizedBox(width: 10),
           Expanded(child: _stat(money(spent), 'Spent')),
           const SizedBox(width: 10),
-          Expanded(child: _stat('$rescued', 'Items rescued')),
+          Expanded(child: _stat(formatQuantity(rescued), 'Items rescued')),
         ]),
         const SizedBox(height: 10),
         AppCard(

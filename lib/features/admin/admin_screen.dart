@@ -63,7 +63,7 @@ class _Overview extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 8),
           child: AppCard(child: Row(children: [
             Expanded(child: Text('${p.name} · ${p.farmName}', maxLines: 1, overflow: TextOverflow.ellipsis)),
-            Pill('${p.totalSold} sold'),
+            Pill('${formatQuantity(p.totalSold)} sold'),
           ])),
         ),
       const SectionHeader('Latest orders'),
