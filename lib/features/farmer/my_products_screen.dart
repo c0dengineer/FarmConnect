@@ -62,7 +62,7 @@ class MyProductsScreen extends ConsumerWidget {
                 Row(children: [
                   const Text('Visible to customers', style: TextStyle(color: AppColors.muted, fontSize: 13)),
                   const Spacer(),
-                  Switch(value: p.isAvailable, activeColor: AppColors.primary, onChanged: (v) => ref.read(productRepoProvider).setAvailable(p.id, v)),
+                  Switch(value: p.isAvailable, activeThumbColor: AppColors.primary, onChanged: (v) => ref.read(productRepoProvider).setAvailable(p.id, v)),
                   IconButton(
                     icon: const Icon(Icons.delete_outline_rounded, color: AppColors.danger),
                     onPressed: () async {

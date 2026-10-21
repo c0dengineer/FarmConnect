@@ -160,7 +160,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 onTap: _pickImages,
                 child: Container(
                   width: 84,
-                  decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.primary.withOpacity(0.4))),
+                  decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.primary.withValues(alpha: 0.4))),
                   child: const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
                 ),
               ),
@@ -176,7 +176,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           AppField(controller: _name, label: 'Product name', validator: requiredValidator),
           const SizedBox(height: 14),
           DropdownButtonFormField<String>(
-            value: _category,
+            initialValue: _category,
             decoration: const InputDecoration(labelText: 'Category'),
             items: AppConstants.categories.map((c) => DropdownMenuItem(value: c, child: Row(children: [Icon(AppConstants.categoryIcons[c], size: 18), const SizedBox(width: 8), Text(c)]))).toList(),
             onChanged: (v) => setState(() {
@@ -199,7 +199,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             Expanded(
               flex: 2,
               child: DropdownButtonFormField<String>(
-                value: _unit,
+                initialValue: _unit,
                 decoration: const InputDecoration(labelText: 'Per'),
                 items: AppConstants.units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
                 onChanged: (v) => setState(() => _unit = v!),
@@ -218,7 +218,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           const SizedBox(height: 20),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
             title: const Text('Pre-order (not harvested yet)', style: TextStyle(fontWeight: FontWeight.w600)),
             value: _pre,
             onChanged: (v) => setState(() => _pre = v),
@@ -253,10 +253,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               child: Text('Tip: freshness is dropping - a $hint% discount via "Ugly but Fresh" can help sell it.', style: const TextStyle(color: AppColors.accent, fontSize: 12.5)),
             ),
           const SizedBox(height: 8),
-          SwitchListTile(contentPadding: EdgeInsets.zero, activeColor: AppColors.primary, title: const Text('Organic', style: TextStyle(fontWeight: FontWeight.w600)), value: _organic, onChanged: (v) => setState(() => _organic = v)),
+          SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: AppColors.primary, title: const Text('Organic', style: TextStyle(fontWeight: FontWeight.w600)), value: _organic, onChanged: (v) => setState(() => _organic = v)),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
             title: const Text('Ugly but Fresh', style: TextStyle(fontWeight: FontWeight.w600)),
             subtitle: const Text('Imperfect shape or size, sold at a discount'),
             value: _ugly,
@@ -270,7 +270,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               Expanded(flex: 2, child: AppField(controller: _uglyReason, label: 'Why? (e.g. odd shape)')),
             ]),
           ],
-          SwitchListTile(contentPadding: EdgeInsets.zero, activeColor: AppColors.primary, title: const Text('Visible to customers', style: TextStyle(fontWeight: FontWeight.w600)), value: _available, onChanged: (v) => setState(() => _available = v)),
+          SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: AppColors.primary, title: const Text('Visible to customers', style: TextStyle(fontWeight: FontWeight.w600)), value: _available, onChanged: (v) => setState(() => _available = v)),
           const SizedBox(height: 16),
           PrimaryButton(label: _isEdit ? 'Save changes' : 'Publish product', loading: _busy, onPressed: _save),
         ]),

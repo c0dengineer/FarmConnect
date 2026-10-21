@@ -41,6 +41,27 @@ class AuthRepo {
     await _ref(user.uid).set(user.toMap());
   }
 
+  /// Finishes a Firebase Auth account whose Firestore profile was not created.
+  Future<void> completeMissingProfile({required String name, required String phone, required String role}) async {
+    final authUser = _auth.currentUser;
+    if (authUser == null) throw StateError('Sign in again before completing your profile.');
+    if (role != Roles.customer && role != Roles.farmer) throw ArgumentError.value(role, 'role');
+    final profileRef = _ref(authUser.uid);
+    final profile = AppUser(
+      uid: authUser.uid,
+      role: role,
+      name: name.trim(),
+      email: (authUser.email ?? '').trim(),
+      phone: phone.trim(),
+      photoUrl: authUser.photoURL,
+      createdAt: DateTime.now(),
+    );
+    await _db.runTransaction((transaction) async {
+      final existing = await transaction.get(profileRef);
+      if (!existing.exists) transaction.set(profileRef, profile.toMap());
+    });
+  }
+
   Future<void> signOut() async {
     NotificationService.reset();
     await _auth.signOut();

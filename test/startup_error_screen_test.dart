@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('missing Firebase configuration shows setup instructions', (tester) async {
-    await tester.pumpWidget(const MaterialApp(
+    await tester.pumpWidget(MaterialApp(
       home: StartupErrorScreen(
         error: UnsupportedError('Firebase is not configured yet'),
       ),
@@ -16,7 +16,7 @@ void main() {
   });
 
   testWidgets('other Firebase startup failures show technical details', (tester) async {
-    await tester.pumpWidget(const MaterialApp(
+    await tester.pumpWidget(MaterialApp(
       home: StartupErrorScreen(error: 'Firebase network failure'),
     ));
 

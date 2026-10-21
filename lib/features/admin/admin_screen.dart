@@ -92,7 +92,7 @@ class _Farmers extends ConsumerWidget {
                 Text(f.address.isEmpty ? f.ownerName : f.address, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, fontSize: 12.5)),
               ])),
               const Text('Verified', style: TextStyle(fontSize: 12, color: AppColors.muted)),
-              Switch(value: f.isVerified, activeColor: AppColors.primary, onChanged: (v) => ref.read(farmRepoProvider).setVerified(f.id, v)),
+              Switch(value: f.isVerified, activeThumbColor: AppColors.primary, onChanged: (v) => ref.read(farmRepoProvider).setVerified(f.id, v)),
             ]),
           );
         },
@@ -121,7 +121,7 @@ class _Products extends ConsumerWidget {
                 Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                 Text('${p.farmName} · ${money(p.price)}/${p.unit}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, fontSize: 12.5)),
               ])),
-              Switch(value: p.isAvailable, activeColor: AppColors.primary, onChanged: (v) => ref.read(productRepoProvider).setAvailable(p.id, v)),
+              Switch(value: p.isAvailable, activeThumbColor: AppColors.primary, onChanged: (v) => ref.read(productRepoProvider).setAvailable(p.id, v)),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, color: AppColors.danger),
                 onPressed: () async {

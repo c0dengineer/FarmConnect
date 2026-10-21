@@ -8,6 +8,7 @@ import 'package:farmconnect/features/auth/login_screen.dart';
 import 'package:farmconnect/features/auth/signup_screen.dart';
 import 'package:farmconnect/features/common/location_picker_screen.dart';
 import 'package:farmconnect/features/common/order_detail_screen.dart';
+import 'package:farmconnect/features/common/profile_load_error_screen.dart';
 import 'package:farmconnect/features/common/splash_screen.dart';
 import 'package:farmconnect/features/customer/alerts_feed_screen.dart';
 import 'package:farmconnect/features/customer/cart_screen.dart';
@@ -41,8 +42,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (auth.isLoading) return loc == '/splash' ? null : '/splash';
       if (auth.valueOrNull == null) return authPages.contains(loc) ? null : '/login';
 
+      if (userAsync.hasError) return loc == '/profile-load-error' ? null : '/profile-load-error';
+      if (!userAsync.isLoading && userAsync.valueOrNull == null) {
+        return loc == '/profile-load-error' ? null : '/profile-load-error';
+      }
+
       final user = userAsync.valueOrNull;
-      if (userAsync.isLoading || user == null) return loc == '/splash' ? null : '/splash';
+      if (userAsync.isLoading) return loc == '/splash' ? null : '/splash';
+      if (user == null) return loc == '/profile-load-error' ? null : '/profile-load-error';
       if (user.isBlocked) return loc == '/blocked' ? null : '/blocked';
 
       final home = '/${user.role}';
@@ -53,6 +60,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
+      GoRoute(path: '/profile-load-error', builder: (_, __) => const ProfileLoadErrorScreen()),
       GoRoute(path: '/blocked', builder: (_, __) => const SplashScreen(blocked: true)),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/signup', builder: (_, __) => const SignupScreen()),

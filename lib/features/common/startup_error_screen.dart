@@ -39,7 +39,7 @@ class StartupErrorScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border.withOpacity(.5)),
+                        border: Border.all(color: AppColors.border.withValues(alpha: .5)),
                       ),
                       child: const SelectableText(
                         'dart pub global run flutterfire_cli:flutterfire configure',

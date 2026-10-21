@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:farmconnect/all.dart';
 
 enum SortBy { nearest, freshest, priceLow, topRated }
@@ -79,8 +78,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               const SizedBox(height: 8),
               chips<int>([0, 50, 70, 90], _minFresh, (v) => v == 0 ? 'Any' : '$v%+', (v) => _minFresh = v),
               const SizedBox(height: 8),
-              SwitchListTile(contentPadding: EdgeInsets.zero, activeColor: AppColors.primary, title: const Text('Organic only'), value: _organic, onChanged: (v) => upd(() => _organic = v)),
-              SwitchListTile(contentPadding: EdgeInsets.zero, activeColor: AppColors.primary, title: const Text('Ugly but Fresh only'), value: _ugly, onChanged: (v) => upd(() => _ugly = v)),
+              SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: AppColors.primary, title: const Text('Organic only'), value: _organic, onChanged: (v) => upd(() => _organic = v)),
+              SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: AppColors.primary, title: const Text('Ugly but Fresh only'), value: _ugly, onChanged: (v) => upd(() => _ugly = v)),
               const SizedBox(height: 8),
               PrimaryButton(label: 'Show results', onPressed: () => Navigator.pop(ctx)),
             ]),

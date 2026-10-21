@@ -22,7 +22,7 @@ class AppCard extends StatelessWidget {
     final r = BorderRadius.circular(16);
     return Container(
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(color: color ?? Colors.white, borderRadius: r, border: Border.all(color: AppColors.border.withOpacity(.48))),
+      decoration: BoxDecoration(color: color ?? Colors.white, borderRadius: r, border: Border.all(color: AppColors.border.withValues(alpha: .48))),
       child: Material(
         color: Colors.transparent,
         child: InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
@@ -135,7 +135,7 @@ class Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(color: bg ?? color.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: bg ?? color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[Icon(icon, size: 13, color: color), const SizedBox(width: 4)],
         Text(text, style: TextStyle(color: color, fontSize: 11.5, fontWeight: FontWeight.w700)),
