@@ -10,6 +10,7 @@ class StorageService {
   // not secrets. Set them with --dart-define at build/run time.
   static const _cloudName = String.fromEnvironment('CLOUDINARY_CLOUD_NAME');
   static const _uploadPreset = String.fromEnvironment('CLOUDINARY_UPLOAD_PRESET');
+  static bool get isConfigured => _cloudName.isNotEmpty && _uploadPreset.isNotEmpty;
 
   /// Picks images; they are down-scaled/compressed by image_picker itself.
   static Future<List<XFile>> pick({int max = 4}) async {
@@ -19,7 +20,7 @@ class StorageService {
 
   static Future<List<String>> upload(List<XFile> files, String folder) async {
     if (files.isEmpty) return const [];
-    if (_cloudName.isEmpty || _uploadPreset.isEmpty) {
+    if (!isConfigured) {
       throw StateError(
         'Photo uploads are not configured. Set CLOUDINARY_CLOUD_NAME and '
         'CLOUDINARY_UPLOAD_PRESET using --dart-define.',

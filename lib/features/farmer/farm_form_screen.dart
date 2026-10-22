@@ -22,7 +22,11 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
   final _upi = TextEditingController();
   final _radius = TextEditingController(text: '15');
   String _type = 'traditional';
-  bool _delivery = true, _pickup = true, _busy = false, _loaded = false, _isNew = true;
+  bool _delivery = true,
+      _pickup = true,
+      _busy = false,
+      _loaded = false,
+      _isNew = true;
   LatLng? _loc;
   List<String> _urls = [];
   List<XFile> _files = [];
@@ -68,7 +72,13 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
 
   Future<void> _save(AppUser user) async {
     if (!_form.currentState!.validate()) return;
-    if (_loc == null) return showMsg(context, 'Pick your farm location on the map.');
+    if (_loc == null) {
+      return showMsg(context, 'Pick your farm location on the map.');
+    }
+    if (_files.isNotEmpty && !StorageService.isConfigured) {
+      return showMsg(context,
+          'Photo uploads need Cloudinary setup. See CLOUDINARY_SETUP.md, then restart with the cloud name and unsigned upload preset.');
+    }
     setState(() => _busy = true);
     try {
       final uploaded = await StorageService.upload(_files, 'farms/${user.uid}');
@@ -106,99 +116,197 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider).valueOrNull;
     final farmAsync = ref.watch(myFarmProvider);
-    if (user == null || farmAsync.isLoading) return const Scaffold(body: LoadingView());
+    if (user == null || farmAsync.isLoading) {
+      return const Scaffold(body: LoadingView());
+    }
     _load(farmAsync.valueOrNull, user);
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isNew ? 'Create farm profile' : 'Edit farm profile')),
+      appBar: AppBar(
+          title: Text(_isNew ? 'Create farm profile' : 'Edit farm profile')),
       body: Form(
         key: _form,
-        child: ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 32), children: [
-          const Text('Farm photos', style: TextStyle(fontWeight: FontWeight.w800)),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 84,
-            child: ListView(scrollDirection: Axis.horizontal, children: [
-              GestureDetector(
-                onTap: () async {
-                  final room = 3 - _urls.length - _files.length;
-                  if (room <= 0) return showMsg(context, 'Maximum 3 photos.');
-                  final f = await StorageService.pick(max: room);
-                  if (f.isNotEmpty) setState(() => _files = [..._files, ...f]);
-                },
-                child: Container(
-                  width: 84,
-                  decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.primary.withValues(alpha: 0.4))),
-                  child: const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
+        child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+            children: [
+              const Text('Farm photos',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              if (!StorageService.isConfigured) ...[
+                const SizedBox(height: 10),
+                AppCard(
+                  color: AppColors.accentSoft,
+                  child: Row(children: [
+                    const Icon(Icons.cloud_off_outlined,
+                        color: AppColors.accent),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                        child: Text(
+                            'Photo upload is not configured yet. Set your Cloudinary cloud name and unsigned preset, then restart the app. See CLOUDINARY_SETUP.md.',
+                            style: TextStyle(fontSize: 12.5))),
+                  ]),
                 ),
-              ),
-              for (var i = 0; i < _urls.length; i++) _thumb(NetImage(_urls[i], width: 84, height: 84, radius: 14), () => setState(() => _urls.removeAt(i))),
-              for (var i = 0; i < _files.length; i++)
-                _thumb(FutureBuilder<List<int>>(future: _files[i].readAsBytes(), builder: (context, snapshot) => ClipRRect(borderRadius: BorderRadius.circular(14), child: snapshot.hasData ? Image.memory(Uint8List.fromList(snapshot.data!), width: 84, height: 84, fit: BoxFit.cover) : const SizedBox(width: 84, height: 84, child: Center(child: CircularProgressIndicator(strokeWidth: 2))))), () => setState(() => _files.removeAt(i))),
-            ]),
-          ),
-          const SizedBox(height: 20),
-          AppField(controller: _name, label: 'Farm name', validator: requiredValidator),
-          const SizedBox(height: 14),
-          AppField(controller: _desc, label: 'About your farm', maxLines: 3),
-          const SizedBox(height: 14),
-          const Text('Farming type', style: TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          Wrap(spacing: 8, children: [
-            for (final t in ['organic', 'traditional', 'mixed'])
-              ChoiceChip(
-                label: Text(t[0].toUpperCase() + t.substring(1)),
-                selected: _type == t,
-                showCheckmark: false,
-                selectedColor: AppColors.primarySoft,
-                side: BorderSide(color: _type == t ? AppColors.primary : AppColors.border),
-                onSelected: (_) => setState(() => _type = t),
-              ),
-          ]),
-          const SizedBox(height: 14),
-          AppField(controller: _phone, label: 'Contact phone', keyboardType: TextInputType.phone, validator: requiredValidator),
-          const SizedBox(height: 14),
-          AppCard(
-            onTap: _pickLocation,
-            child: Row(children: [
-              Icon(_loc == null ? Icons.add_location_alt_outlined : Icons.location_on_rounded, color: AppColors.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(_loc == null ? 'Pin your farm on the map' : 'Location set', style: const TextStyle(fontWeight: FontWeight.w700)),
-                  if (_loc != null) Text('${_loc!.latitude.toStringAsFixed(4)}, ${_loc!.longitude.toStringAsFixed(4)}', style: const TextStyle(color: AppColors.muted, fontSize: 12.5)),
+              ],
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 84,
+                child: ListView(scrollDirection: Axis.horizontal, children: [
+                  GestureDetector(
+                    onTap: () async {
+                      final room = 3 - _urls.length - _files.length;
+                      if (room <= 0) {
+                        return showMsg(context, 'Maximum 3 photos.');
+                      }
+                      final f = await StorageService.pick(max: room);
+                      if (f.isNotEmpty) {
+                        setState(() => _files = [..._files, ...f]);
+                      }
+                    },
+                    child: Container(
+                      width: 84,
+                      decoration: BoxDecoration(
+                          color: AppColors.primarySoft,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.4))),
+                      child: const Icon(Icons.add_a_photo_outlined,
+                          color: AppColors.primary),
+                    ),
+                  ),
+                  for (var i = 0; i < _urls.length; i++)
+                    _thumb(
+                        NetImage(_urls[i], width: 84, height: 84, radius: 14),
+                        () => setState(() => _urls.removeAt(i))),
+                  for (var i = 0; i < _files.length; i++)
+                    _thumb(
+                        FutureBuilder<List<int>>(
+                            future: _files[i].readAsBytes(),
+                            builder: (context, snapshot) => ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: snapshot.hasData
+                                    ? Image.memory(
+                                        Uint8List.fromList(snapshot.data!),
+                                        width: 84,
+                                        height: 84,
+                                        fit: BoxFit.cover)
+                                    : const SizedBox(
+                                        width: 84,
+                                        height: 84,
+                                        child: Center(
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2))))),
+                        () => setState(() => _files.removeAt(i))),
                 ]),
               ),
-              const Icon(Icons.chevron_right_rounded),
+              const SizedBox(height: 20),
+              AppField(
+                  controller: _name,
+                  label: 'Farm name',
+                  validator: requiredValidator),
+              const SizedBox(height: 14),
+              AppField(
+                  controller: _desc, label: 'About your farm', maxLines: 3),
+              const SizedBox(height: 14),
+              const Text('Farming type',
+                  style: TextStyle(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 8),
+              Wrap(spacing: 8, children: [
+                for (final t in ['organic', 'traditional', 'mixed'])
+                  ChoiceChip(
+                    label: Text(t[0].toUpperCase() + t.substring(1)),
+                    selected: _type == t,
+                    showCheckmark: false,
+                    selectedColor: AppColors.primarySoft,
+                    side: BorderSide(
+                        color:
+                            _type == t ? AppColors.primary : AppColors.border),
+                    onSelected: (_) => setState(() => _type = t),
+                  ),
+              ]),
+              const SizedBox(height: 14),
+              AppField(
+                  controller: _phone,
+                  label: 'Contact phone',
+                  keyboardType: TextInputType.phone,
+                  validator: requiredValidator),
+              const SizedBox(height: 14),
+              AppCard(
+                onTap: _pickLocation,
+                child: Row(children: [
+                  Icon(
+                      _loc == null
+                          ? Icons.add_location_alt_outlined
+                          : Icons.location_on_rounded,
+                      color: AppColors.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              _loc == null
+                                  ? 'Pin your farm on the map'
+                                  : 'Location set',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700)),
+                          if (_loc != null)
+                            Text(
+                                '${_loc!.latitude.toStringAsFixed(4)}, ${_loc!.longitude.toStringAsFixed(4)}',
+                                style: const TextStyle(
+                                    color: AppColors.muted, fontSize: 12.5)),
+                        ]),
+                  ),
+                  const Icon(Icons.chevron_right_rounded),
+                ]),
+              ),
+              const SizedBox(height: 14),
+              AppField(
+                  controller: _address, label: 'Farm address', maxLines: 2),
+              const SizedBox(height: 14),
+              AppField(
+                controller: _upi,
+                label: 'UPI ID for direct payments (optional)',
+                hint: 'name@bank',
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  final v = value?.trim() ?? '';
+                  if (v.isEmpty) return null;
+                  return RegExp(r'^[\w.\-]{2,256}@[\w]{2,64}$').hasMatch(v)
+                      ? null
+                      : 'Enter a valid UPI ID, such as name@bank';
+                },
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Text(
+                    'Customers pay this UPI ID directly. You will confirm receipt yourself.',
+                    style: TextStyle(color: AppColors.muted, fontSize: 12)),
+              ),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  activeThumbColor: AppColors.primary,
+                  title: const Text('Offer delivery',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  value: _delivery,
+                  onChanged: (v) => setState(() => _delivery = v)),
+              if (_delivery)
+                AppField(
+                    controller: _radius,
+                    label: 'Delivery radius (km)',
+                    keyboardType: TextInputType.number),
+              SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  activeThumbColor: AppColors.primary,
+                  title: const Text('Offer pickup at the farm',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  value: _pickup,
+                  onChanged: (v) => setState(() => _pickup = v)),
+              const SizedBox(height: 16),
+              PrimaryButton(
+                  label: 'Save farm profile',
+                  loading: _busy,
+                  onPressed: () => _save(user)),
             ]),
-          ),
-          const SizedBox(height: 14),
-          AppField(controller: _address, label: 'Farm address', maxLines: 2),
-          const SizedBox(height: 14),
-          AppField(
-            controller: _upi,
-            label: 'UPI ID for direct payments (optional)',
-            hint: 'name@bank',
-            keyboardType: TextInputType.emailAddress,
-            validator: (value) {
-              final v = value?.trim() ?? '';
-              if (v.isEmpty) return null;
-              return RegExp(r'^[\w.\-]{2,256}@[\w]{2,64}$').hasMatch(v)
-                  ? null
-                  : 'Enter a valid UPI ID, such as name@bank';
-            },
-          ),
-          const Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: Text('Customers pay this UPI ID directly. You will confirm receipt yourself.', style: TextStyle(color: AppColors.muted, fontSize: 12)),
-          ),
-          const SizedBox(height: 8),
-          SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: AppColors.primary, title: const Text('Offer delivery', style: TextStyle(fontWeight: FontWeight.w600)), value: _delivery, onChanged: (v) => setState(() => _delivery = v)),
-          if (_delivery) AppField(controller: _radius, label: 'Delivery radius (km)', keyboardType: TextInputType.number),
-          SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: AppColors.primary, title: const Text('Offer pickup at the farm', style: TextStyle(fontWeight: FontWeight.w600)), value: _pickup, onChanged: (v) => setState(() => _pickup = v)),
-          const SizedBox(height: 16),
-          PrimaryButton(label: 'Save farm profile', loading: _busy, onPressed: () => _save(user)),
-        ]),
       ),
     );
   }
@@ -212,7 +320,11 @@ class _FarmFormScreenState extends ConsumerState<FarmFormScreen> {
             top: 4,
             child: GestureDetector(
               onTap: onRemove,
-              child: const CircleAvatar(radius: 10, backgroundColor: Colors.black54, child: Icon(Icons.close_rounded, size: 13, color: Colors.white)),
+              child: const CircleAvatar(
+                  radius: 10,
+                  backgroundColor: Colors.black54,
+                  child:
+                      Icon(Icons.close_rounded, size: 13, color: Colors.white)),
             ),
           ),
         ]),

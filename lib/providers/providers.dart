@@ -24,7 +24,8 @@ final reviewRepoProvider = Provider((ref) => ReviewRepo());
 final alertRepoProvider = Provider((ref) => AlertRepo());
 
 // ---- Auth / user ----
-final authStateProvider = StreamProvider<User?>((ref) => FirebaseAuth.instance.authStateChanges());
+final authStateProvider =
+    StreamProvider<User?>((ref) => FirebaseAuth.instance.authStateChanges());
 
 final currentUserProvider = StreamProvider<AppUser?>((ref) {
   final uid = ref.watch(authStateProvider).valueOrNull?.uid;
@@ -33,25 +34,83 @@ final currentUserProvider = StreamProvider<AppUser?>((ref) {
 });
 
 // ---- Location ----
-final userLocationProvider = FutureProvider<Position?>((ref) => LocationService.current());
+final userLocationNameProvider = StateProvider<String?>((ref) => null);
+
+class UserLocationNotifier extends StateNotifier<AsyncValue<Position?>> {
+  UserLocationNotifier(this._ref) : super(const AsyncLoading()) {
+    refresh();
+  }
+
+  final Ref _ref;
+  int _generation = 0;
+
+  Future<void> refresh() async {
+    final request = ++_generation;
+    state = const AsyncLoading();
+    try {
+      final position = await LocationService.current();
+      if (request != _generation) return;
+      if (position == null) {
+        state = const AsyncData(null);
+        return;
+      }
+      final name = await LocationService.addressFor(
+          position.latitude, position.longitude);
+      if (request != _generation) return;
+      _ref.read(userLocationNameProvider.notifier).state =
+          name.isEmpty ? null : name;
+      state = AsyncData(position);
+    } catch (error, stack) {
+      if (request != _generation) return;
+      state = AsyncError(error, stack);
+    }
+  }
+
+  void select(double latitude, double longitude, String placeName) {
+    _generation++;
+    _ref.read(userLocationNameProvider.notifier).state = placeName;
+    state = AsyncData(Position(
+      latitude: latitude,
+      longitude: longitude,
+      timestamp: DateTime.now(),
+      accuracy: 0,
+      altitude: 0,
+      altitudeAccuracy: 0,
+      heading: 0,
+      headingAccuracy: 0,
+      speed: 0,
+      speedAccuracy: 0,
+    ));
+  }
+}
+
+final userLocationProvider =
+    StateNotifierProvider<UserLocationNotifier, AsyncValue<Position?>>(
+  (ref) => UserLocationNotifier(ref),
+);
 
 // ---- Products / farms ----
-final productsProvider = StreamProvider<List<Product>>((ref) => ref.watch(productRepoProvider).watchAvailable());
+final productsProvider = StreamProvider<List<Product>>(
+    (ref) => ref.watch(productRepoProvider).watchAvailable());
 
 /// Only products a customer can actually buy right now.
 final visibleProductsProvider = Provider<AsyncValue<List<Product>>>(
-  (ref) => ref.watch(productsProvider).whenData((l) => l.where((p) => p.isBuyable).toList()),
+  (ref) => ref
+      .watch(productsProvider)
+      .whenData((l) => l.where((p) => p.isBuyable).toList()),
 );
 
-final allProductsAdminProvider = StreamProvider<List<Product>>((ref) => ref.watch(productRepoProvider).watchAll());
+final allProductsAdminProvider = StreamProvider<List<Product>>(
+    (ref) => ref.watch(productRepoProvider).watchAll());
 
-final farmsProvider = StreamProvider<List<Farm>>((ref) => ref.watch(farmRepoProvider).watchFarms());
+final farmsProvider = StreamProvider<List<Farm>>(
+    (ref) => ref.watch(farmRepoProvider).watchFarms());
 
-final farmProvider =
-    StreamProvider.family.autoDispose<Farm?, String>((ref, id) => ref.watch(farmRepoProvider).watchFarm(id));
+final farmProvider = StreamProvider.family.autoDispose<Farm?, String>(
+    (ref, id) => ref.watch(farmRepoProvider).watchFarm(id));
 
-final productProvider =
-    StreamProvider.family.autoDispose<Product?, String>((ref, id) => ref.watch(productRepoProvider).watchById(id));
+final productProvider = StreamProvider.family.autoDispose<Product?, String>(
+    (ref, id) => ref.watch(productRepoProvider).watchById(id));
 
 final myFarmProvider = StreamProvider<Farm?>((ref) {
   final uid = ref.watch(currentUserProvider).valueOrNull?.uid;
@@ -78,17 +137,20 @@ final farmerOrdersProvider = StreamProvider<List<FarmOrder>>((ref) {
   return ref.watch(orderRepoProvider).watchForFarmer(uid);
 });
 
-final orderProvider =
-    StreamProvider.family.autoDispose<FarmOrder?, String>((ref, id) => ref.watch(orderRepoProvider).watchById(id));
+final orderProvider = StreamProvider.family.autoDispose<FarmOrder?, String>(
+    (ref, id) => ref.watch(orderRepoProvider).watchById(id));
 
-final recentOrdersAdminProvider = StreamProvider<List<FarmOrder>>((ref) => ref.watch(orderRepoProvider).watchRecent());
+final recentOrdersAdminProvider = StreamProvider<List<FarmOrder>>(
+    (ref) => ref.watch(orderRepoProvider).watchRecent());
 
 // ---- Reviews / alerts ----
-final productReviewsProvider = StreamProvider.family.autoDispose<List<Review>, String>(
-    (ref, id) => ref.watch(reviewRepoProvider).watchForProduct(id));
+final productReviewsProvider = StreamProvider.family
+    .autoDispose<List<Review>, String>(
+        (ref, id) => ref.watch(reviewRepoProvider).watchForProduct(id));
 
-final farmReviewsProvider = StreamProvider.family.autoDispose<List<Review>, String>(
-    (ref, id) => ref.watch(reviewRepoProvider).watchForFarm(id));
+final farmReviewsProvider = StreamProvider.family
+    .autoDispose<List<Review>, String>(
+        (ref, id) => ref.watch(reviewRepoProvider).watchForFarm(id));
 
 final myAlertsProvider = StreamProvider<List<HarvestAlert>>((ref) {
   final uid = ref.watch(currentUserProvider).valueOrNull?.uid;
@@ -101,7 +163,8 @@ final followedAlertsProvider = StreamProvider<List<HarvestAlert>>((ref) {
   return ref.watch(alertRepoProvider).watchForFarms(ids);
 });
 
-final allUsersAdminProvider = StreamProvider<List<AppUser>>((ref) => ref.watch(authRepoProvider).watchAllUsers());
+final allUsersAdminProvider = StreamProvider<List<AppUser>>(
+    (ref) => ref.watch(authRepoProvider).watchAllUsers());
 
 // ---- Cart (kept in memory; one farmer per cart) ----
 class CartItem {
@@ -116,14 +179,16 @@ class CartState {
   const CartState({this.farmerUid, this.farmName, this.items = const {}});
 
   int get count => items.length;
-  double get subtotal => items.values.fold(0.0, (s, e) => s + e.product.effectivePrice * e.qty);
+  double get subtotal =>
+      items.values.fold(0.0, (s, e) => s + e.product.effectivePrice * e.qty);
   bool get isEmpty => items.isEmpty;
 }
 
 class CartNotifier extends StateNotifier<CartState> {
   CartNotifier() : super(const CartState());
 
-  bool conflicts(Product p) => state.items.isNotEmpty && state.farmerUid != p.farmerUid;
+  bool conflicts(Product p) =>
+      state.items.isNotEmpty && state.farmerUid != p.farmerUid;
 
   void add(Product p, {double qty = 1}) {
     if (conflicts(p)) clear();
@@ -131,7 +196,8 @@ class CartNotifier extends StateNotifier<CartState> {
     final current = items[p.id]?.qty ?? 0;
     final next = (current + qty).clamp(0.001, p.quantityAvailable).toDouble();
     items[p.id] = CartItem(p, next);
-    state = CartState(farmerUid: p.farmerUid, farmName: p.farmName, items: items);
+    state =
+        CartState(farmerUid: p.farmerUid, farmName: p.farmName, items: items);
   }
 
   void setQty(String id, double qty) {
@@ -143,17 +209,20 @@ class CartNotifier extends StateNotifier<CartState> {
       item.product,
       qty.clamp(0.001, item.product.quantityAvailable).toDouble(),
     );
-    state = CartState(farmerUid: state.farmerUid, farmName: state.farmName, items: items);
+    state = CartState(
+        farmerUid: state.farmerUid, farmName: state.farmName, items: items);
   }
 
   void remove(String id) {
     final items = Map<String, CartItem>.from(state.items)..remove(id);
     state = items.isEmpty
         ? const CartState()
-        : CartState(farmerUid: state.farmerUid, farmName: state.farmName, items: items);
+        : CartState(
+            farmerUid: state.farmerUid, farmName: state.farmName, items: items);
   }
 
   void clear() => state = const CartState();
 }
 
-final cartProvider = StateNotifierProvider<CartNotifier, CartState>((ref) => CartNotifier());
+final cartProvider =
+    StateNotifierProvider<CartNotifier, CartState>((ref) => CartNotifier());

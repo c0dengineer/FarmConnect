@@ -8,10 +8,16 @@ import 'package:farmconnect/core/utils/quantity_utils.dart';
 import 'package:farmconnect/models/farm.dart';
 import 'package:farmconnect/models/order.dart';
 import 'package:farmconnect/models/product.dart';
+import 'package:farmconnect/providers/providers.dart';
 
 /// White rounded card with a hairline border - the base surface of the whole app.
 class AppCard extends StatelessWidget {
-  const AppCard({super.key, required this.child, this.padding = const EdgeInsets.all(14), this.onTap, this.color});
+  const AppCard(
+      {super.key,
+      required this.child,
+      this.padding = const EdgeInsets.all(14),
+      this.onTap,
+      this.color});
   final Widget child;
   final EdgeInsets padding;
   final VoidCallback? onTap;
@@ -22,10 +28,14 @@ class AppCard extends StatelessWidget {
     final r = BorderRadius.circular(16);
     return Container(
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(color: color ?? Colors.white, borderRadius: r, border: Border.all(color: AppColors.border.withValues(alpha: .48))),
+      decoration: BoxDecoration(
+          color: color ?? Colors.white,
+          borderRadius: r,
+          border: Border.all(color: AppColors.border.withValues(alpha: .48))),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
+        child: InkWell(
+            onTap: onTap, child: Padding(padding: padding, child: child)),
       ),
     );
   }
@@ -53,20 +63,29 @@ class PrimaryButton extends StatelessWidget {
         ? SizedBox(
             height: 20,
             width: 20,
-            child: CircularProgressIndicator(strokeWidth: 2.4, color: outlined ? AppColors.primary : Colors.white))
+            child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: outlined ? AppColors.primary : Colors.white))
         : Row(mainAxisSize: MainAxisSize.min, children: [
-            if (icon != null) ...[Icon(icon, size: 18), const SizedBox(width: 8)],
+            if (icon != null) ...[
+              Icon(icon, size: 18),
+              const SizedBox(width: 8)
+            ],
             Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
           ]);
     final cb = loading ? null : onPressed;
     final btn = outlined
         ? OutlinedButton(
             onPressed: cb,
-            style: danger ? OutlinedButton.styleFrom(foregroundColor: AppColors.danger) : null,
+            style: danger
+                ? OutlinedButton.styleFrom(foregroundColor: AppColors.danger)
+                : null,
             child: child)
         : ElevatedButton(
             onPressed: cb,
-            style: danger ? ElevatedButton.styleFrom(backgroundColor: AppColors.danger) : null,
+            style: danger
+                ? ElevatedButton.styleFrom(backgroundColor: AppColors.danger)
+                : null,
             child: child);
     return expand ? SizedBox(width: double.infinity, child: btn) : btn;
   }
@@ -114,7 +133,9 @@ class AppField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: prefixIcon == null ? null : Icon(prefixIcon, size: 20, color: AppColors.muted),
+        prefixIcon: prefixIcon == null
+            ? null
+            : Icon(prefixIcon, size: 20, color: AppColors.muted),
         suffixIcon: suffix,
       ),
     );
@@ -125,7 +146,8 @@ String? requiredValidator(String? v, [String msg = 'This field is required']) =>
     (v == null || v.trim().isEmpty) ? msg : null;
 
 class Pill extends StatelessWidget {
-  const Pill(this.text, {super.key, this.color = AppColors.primary, this.bg, this.icon});
+  const Pill(this.text,
+      {super.key, this.color = AppColors.primary, this.bg, this.icon});
   final String text;
   final Color color;
   final Color? bg;
@@ -135,10 +157,17 @@ class Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(color: bg ?? color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+          color: bg ?? color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(20)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (icon != null) ...[Icon(icon, size: 13, color: color), const SizedBox(width: 4)],
-        Text(text, style: TextStyle(color: color, fontSize: 11.5, fontWeight: FontWeight.w700)),
+        if (icon != null) ...[
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 4)
+        ],
+        Text(text,
+            style: TextStyle(
+                color: color, fontSize: 11.5, fontWeight: FontWeight.w700)),
       ]),
     );
   }
@@ -179,19 +208,26 @@ class FreshnessBadge extends StatelessWidget {
     final c = freshnessColor(score);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(Icons.eco_rounded, size: 13, color: c),
         const SizedBox(width: 3),
         Text(compact ? '$score%' : '$score% · ${freshnessLabel(score)}',
-            style: TextStyle(color: c, fontSize: 11.5, fontWeight: FontWeight.w700)),
+            style: TextStyle(
+                color: c, fontSize: 11.5, fontWeight: FontWeight.w700)),
       ]),
     );
   }
 }
 
 class NetImage extends StatelessWidget {
-  const NetImage(this.url, {super.key, this.width, this.height, this.fit = BoxFit.cover, this.radius = 0});
+  const NetImage(this.url,
+      {super.key,
+      this.width,
+      this.height,
+      this.fit = BoxFit.cover,
+      this.radius = 0});
   final String? url;
   final double? width, height, radius;
   final BoxFit fit;
@@ -199,15 +235,15 @@ class NetImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget placeholder({bool failed = false}) => Container(
-      width: width,
-      height: height,
-      color: AppColors.primarySoft,
-      alignment: Alignment.center,
-      child: Icon(
-        failed ? Icons.broken_image_outlined : Icons.eco_rounded,
-        color: AppColors.primary,
-      ),
-    );
+          width: width,
+          height: height,
+          color: AppColors.primarySoft,
+          alignment: Alignment.center,
+          child: Icon(
+            failed ? Icons.broken_image_outlined : Icons.eco_rounded,
+            color: AppColors.primary,
+          ),
+        );
     final r = BorderRadius.circular(radius ?? 0);
     if (url == null || url!.isEmpty) {
       return ClipRRect(borderRadius: r, child: placeholder());
@@ -240,7 +276,8 @@ class NetImage extends StatelessWidget {
     }
     return uri
         .replace(
-          path: uri.path.replaceFirst(uploadPath, '${uploadPath}f_auto,q_auto/'),
+          path:
+              uri.path.replaceFirst(uploadPath, '${uploadPath}f_auto,q_auto/'),
         )
         .toString();
   }
@@ -260,7 +297,8 @@ class RatingStars extends StatelessWidget {
       Text(rating == 0 ? 'New' : rating.toStringAsFixed(1),
           style: TextStyle(fontSize: size - 2, fontWeight: FontWeight.w700)),
       if (count != null && count! > 0)
-        Text(' ($count)', style: TextStyle(fontSize: size - 3, color: AppColors.muted)),
+        Text(' ($count)',
+            style: TextStyle(fontSize: size - 3, color: AppColors.muted)),
     ]);
   }
 }
@@ -279,7 +317,8 @@ class RatingInput extends StatelessWidget {
         return IconButton(
           onPressed: () => onChanged(i + 1),
           iconSize: 40,
-          icon: Icon(on ? Icons.star_rounded : Icons.star_outline_rounded, color: AppColors.accent),
+          icon: Icon(on ? Icons.star_rounded : Icons.star_outline_rounded,
+              color: AppColors.accent),
         );
       }),
     );
@@ -287,7 +326,12 @@ class RatingInput extends StatelessWidget {
 }
 
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key, required this.icon, required this.title, this.subtitle, this.action});
+  const EmptyState(
+      {super.key,
+      required this.icon,
+      required this.title,
+      this.subtitle,
+      this.action});
   final IconData icon;
   final String title;
   final String? subtitle;
@@ -301,14 +345,20 @@ class EmptyState extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
             padding: const EdgeInsets.all(18),
-            decoration: const BoxDecoration(color: AppColors.primarySoft, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+                color: AppColors.primarySoft, shape: BoxShape.circle),
             child: Icon(icon, size: 34, color: AppColors.primary),
           ),
           const SizedBox(height: 16),
-          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text(title,
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           if (subtitle != null) ...[
             const SizedBox(height: 6),
-            Text(subtitle!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.muted)),
+            Text(subtitle!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: AppColors.muted)),
           ],
           if (action != null) ...[const SizedBox(height: 18), action!],
         ]),
@@ -323,7 +373,8 @@ class LoadingView extends StatelessWidget {
   Widget build(BuildContext context) => const Center(
         child: Padding(
           padding: EdgeInsets.all(32),
-          child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 3),
+          child: CircularProgressIndicator(
+              color: AppColors.primary, strokeWidth: 3),
         ),
       );
 }
@@ -332,13 +383,17 @@ class ErrorView extends StatelessWidget {
   const ErrorView(this.message, {super.key});
   final String message;
   @override
-  Widget build(BuildContext context) =>
-      EmptyState(icon: Icons.error_outline_rounded, title: 'Something went wrong', subtitle: message);
+  Widget build(BuildContext context) => EmptyState(
+      icon: Icons.error_outline_rounded,
+      title: 'Something went wrong',
+      subtitle: message);
 }
 
 extension AsyncUi<T> on AsyncValue<T> {
-  Widget whenUi(Widget Function(T data) builder) =>
-      when(data: builder, loading: () => const LoadingView(), error: (e, _) => ErrorView(e.toString()));
+  Widget whenUi(Widget Function(T data) builder) => when(
+      data: builder,
+      loading: () => const LoadingView(),
+      error: (e, _) => ErrorView(e.toString()));
 }
 
 class SectionHeader extends StatelessWidget {
@@ -352,11 +407,16 @@ class SectionHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 22, 0, 12),
       child: Row(children: [
-        Expanded(child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
+        Expanded(
+            child: Text(title,
+                style: const TextStyle(
+                    fontSize: 17, fontWeight: FontWeight.w800))),
         if (action != null)
           GestureDetector(
             onTap: onAction,
-            child: Text(action!, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+            child: Text(action!,
+                style: const TextStyle(
+                    color: AppColors.primary, fontWeight: FontWeight.w600)),
           ),
       ]),
     );
@@ -388,19 +448,24 @@ class QtyStepper extends StatelessWidget {
               color: f == null ? AppColors.bg : AppColors.primarySoft,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(i, size: 18, color: f == null ? AppColors.muted : AppColors.primary),
+            child: Icon(i,
+                size: 18,
+                color: f == null ? AppColors.muted : AppColors.primary),
           ),
         );
     final minQty = max != null && max! < step ? max! : step;
     final atMax = max != null && qty >= max!;
-    final nextQty = max == null ? qty + step : (qty + step).clamp(0, max!).toDouble();
+    final nextQty =
+        max == null ? qty + step : (qty + step).clamp(0, max!).toDouble();
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      btn(Icons.remove_rounded, qty <= minQty ? null : () => onChanged(qty - step)),
+      btn(Icons.remove_rounded,
+          qty <= minQty ? null : () => onChanged(qty - step)),
       SizedBox(
         width: 42,
         child: Center(
           child: Text(formatQuantity(qty),
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              style:
+                  const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
         ),
       ),
       btn(Icons.add_rounded, atMax ? null : () => onChanged(nextQty)),
@@ -408,14 +473,16 @@ class QtyStepper extends StatelessWidget {
   }
 }
 
-class ProductCard extends StatelessWidget {
-  const ProductCard({super.key, required this.product, this.distanceKm, this.width});
+class ProductCard extends ConsumerWidget {
+  const ProductCard(
+      {super.key, required this.product, this.distanceKm, this.width});
   final Product product;
   final double? distanceKm, width;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final p = product;
+    final inCart = ref.watch(cartProvider).items[p.id];
     return SizedBox(
       width: width,
       child: AppCard(
@@ -423,42 +490,84 @@ class ProductCard extends StatelessWidget {
         onTap: () => context.push('/product/${p.id}'),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Stack(children: [
-            NetImage(p.imageUrls.isEmpty ? null : p.imageUrls.first, height: 132, width: double.infinity),
-            Positioned(left: 8, top: 8, child: FreshnessBadge(score: p.freshness, compact: true)),
+            NetImage(p.imageUrls.isEmpty ? null : p.imageUrls.first,
+                height: 132, width: double.infinity),
+            Positioned(
+                left: 8,
+                top: 8,
+                child: FreshnessBadge(score: p.freshness, compact: true)),
             if (p.isUgly && p.uglyDiscountPercent > 0)
               Positioned(
                 right: 8,
                 top: 8,
-                child: Pill('-${p.uglyDiscountPercent}%', color: Colors.white, bg: AppColors.accent),
+                child: Pill('-${p.uglyDiscountPercent}%',
+                    color: Colors.white, bg: AppColors.accent),
+              ),
+            if (p.isBuyable)
+              Positioned(
+                right: 8,
+                bottom: 8,
+                child: IconButton.filledTonal(
+                  tooltip: inCart == null
+                      ? 'Add ${p.name} to cart'
+                      : 'Add one more ${p.name}',
+                  onPressed: () => addProductToCart(context, ref, p),
+                  icon: Badge(
+                    isLabelVisible: inCart != null,
+                    label:
+                        Text(inCart == null ? '' : formatQuantity(inCart.qty)),
+                    child: const Icon(Icons.add_shopping_cart_rounded),
+                  ),
+                ),
               ),
           ]),
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(p.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 15)),
               const SizedBox(height: 2),
-              Text(p.farmName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+              Text(p.farmName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.muted, fontSize: 12)),
               const SizedBox(height: 8),
               Row(children: [
                 Expanded(
                   child: Text.rich(
                     TextSpan(children: [
-                      TextSpan(text: money(p.effectivePrice), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                      TextSpan(
+                          text: money(p.effectivePrice),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 15)),
                       if (p.isUgly && p.uglyDiscountPercent > 0)
                         TextSpan(
                           text: ' ${money(p.price)}',
-                          style: const TextStyle(color: AppColors.muted, fontSize: 11.5, decoration: TextDecoration.lineThrough),
+                          style: const TextStyle(
+                              color: AppColors.muted,
+                              fontSize: 11.5,
+                              decoration: TextDecoration.lineThrough),
                         ),
-                      TextSpan(text: ' /${p.unit}', style: const TextStyle(color: AppColors.muted, fontSize: 11.5)),
+                      TextSpan(
+                          text: ' /${p.unit}',
+                          style: const TextStyle(
+                              color: AppColors.muted, fontSize: 11.5)),
                     ]),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (distanceKm != null) ...[
-                  const Icon(Icons.near_me_rounded, size: 12, color: AppColors.muted),
+                  const Icon(Icons.near_me_rounded,
+                      size: 12, color: AppColors.muted),
                   const SizedBox(width: 2),
-                  Text(fmtDistance(distanceKm), style: const TextStyle(fontSize: 11.5, color: AppColors.muted)),
+                  Text(fmtDistance(distanceKm),
+                      style: const TextStyle(
+                          fontSize: 11.5, color: AppColors.muted)),
                 ],
               ]),
             ]),
@@ -469,59 +578,116 @@ class ProductCard extends StatelessWidget {
   }
 }
 
-class FarmTile extends StatelessWidget {
-  const FarmTile({super.key, required this.farm, this.distanceKm, this.width, this.isNearest = false});
+class FarmTile extends ConsumerWidget {
+  const FarmTile(
+      {super.key,
+      required this.farm,
+      this.distanceKm,
+      this.width,
+      this.isNearest = false,
+      this.onLocate});
   final Farm farm;
   final double? distanceKm, width;
   final bool isNearest;
+  final VoidCallback? onLocate;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final farmProducts = (ref.watch(visibleProductsProvider).valueOrNull ?? [])
+        .where((p) => p.farmerUid == farm.id && p.isBuyable)
+        .toList()
+      ..sort((a, b) => b.totalSold.compareTo(a.totalSold));
+    final quickAdd = farmProducts.isEmpty ? null : farmProducts.first;
     return SizedBox(
       width: width,
       child: AppCard(
         onTap: () => context.push('/farm/${farm.id}'),
         child: Row(children: [
-          NetImage(farm.photoUrls.isEmpty ? null : farm.photoUrls.first, width: 56, height: 56, radius: 14),
+          NetImage(farm.photoUrls.isEmpty ? null : farm.photoUrls.first,
+              width: 56, height: 56, radius: 14),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Row(children: [
-                Flexible(child: Text(farm.farmName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))),
-                if (farm.isVerified) const Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.verified_rounded, size: 16, color: AppColors.info)),
-              ]),
-              const SizedBox(height: 4),
-              RatingStars(farm.ratingAvg, count: farm.ratingCount, size: 14),
-              const SizedBox(height: 2),
-              if (isNearest) const Padding(
-                padding: EdgeInsets.only(bottom: 3),
-                child: Pill('Nearest to you', icon: Icons.near_me_rounded),
-              ),
-              Text(
-                [if (distanceKm != null) fmtDistance(distanceKm), farm.farmingType].join(' · '),
-                style: const TextStyle(color: AppColors.muted, fontSize: 12),
-              ),
-            ]),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(children: [
+                    Flexible(
+                        child: Text(farm.farmName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w700))),
+                    if (farm.isVerified)
+                      const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(Icons.verified_rounded,
+                              size: 16, color: AppColors.info)),
+                  ]),
+                  const SizedBox(height: 4),
+                  RatingStars(farm.ratingAvg,
+                      count: farm.ratingCount, size: 14),
+                  const SizedBox(height: 2),
+                  if (isNearest)
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 3),
+                      child:
+                          Pill('Nearest to you', icon: Icons.near_me_rounded),
+                    ),
+                  Text(
+                    [
+                      if (distanceKm != null) fmtDistance(distanceKm),
+                      farm.farmingType
+                    ].join(' · '),
+                    style:
+                        const TextStyle(color: AppColors.muted, fontSize: 12),
+                  ),
+                ]),
           ),
+          if (onLocate != null || quickAdd != null)
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              if (onLocate != null)
+                IconButton(
+                  tooltip: 'Show ${farm.farmName} on map',
+                  onPressed: onLocate,
+                  icon: const Icon(Icons.my_location_rounded,
+                      color: AppColors.primary),
+                ),
+              if (quickAdd != null)
+                IconButton.filledTonal(
+                  tooltip:
+                      'Quick add ${quickAdd.name} · ${money(quickAdd.effectivePrice)}',
+                  onPressed: () => addProductToCart(context, ref, quickAdd),
+                  icon: const Icon(Icons.add_shopping_cart_rounded),
+                ),
+            ]),
         ]),
       ),
     );
   }
 }
 
-Future<bool> confirmDialog(BuildContext context, String title, String message, {String confirm = 'Confirm', bool danger = false}) async {
+Future<bool> confirmDialog(BuildContext context, String title, String message,
+    {String confirm = 'Confirm', bool danger = false}) async {
   final res = await showDialog<bool>(
     context: context,
     builder: (c) => AlertDialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+      title: Text(title,
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel', style: TextStyle(color: AppColors.muted))),
+        TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child:
+                const Text('Cancel', style: TextStyle(color: AppColors.muted))),
         TextButton(
           onPressed: () => Navigator.pop(c, true),
-          child: Text(confirm, style: TextStyle(color: danger ? AppColors.danger : AppColors.primary, fontWeight: FontWeight.w700)),
+          child: Text(confirm,
+              style: TextStyle(
+                  color: danger ? AppColors.danger : AppColors.primary,
+                  fontWeight: FontWeight.w700)),
         ),
       ],
     ),
@@ -533,4 +699,22 @@ void showMsg(BuildContext context, String text) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(text)));
+}
+
+Future<void> addProductToCart(
+    BuildContext context, WidgetRef ref, Product product) async {
+  final cartState = ref.read(cartProvider);
+  final cart = ref.read(cartProvider.notifier);
+  if (cart.conflicts(product)) {
+    final startNew = await confirmDialog(
+      context,
+      'Start a new cart?',
+      'Your cart has produce from ${cartState.farmName}. Replace it with items from ${product.farmName}?',
+      confirm: 'Replace cart',
+    );
+    if (!startNew || !context.mounted) return;
+    cart.clear();
+  }
+  cart.add(product);
+  if (context.mounted) showMsg(context, '${product.name} added to your cart');
 }

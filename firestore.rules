@@ -9,6 +9,22 @@ service cloud.firestore {
     function onlyChanges(keys) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
     }
+    function reviewPath(orderId) {
+      return /databases/$(db)/documents/reviews/$(orderId);
+    }
+    function ownsDeliveredUnreviewedOrder(orderId) {
+      let order = get(/databases/$(db)/documents/orders/$(orderId));
+      return signedIn()
+        && order.data.customerUid == request.auth.uid
+        && order.data.status == 'delivered'
+        && order.data.reviewed != true
+        && request.resource.data.farmerUid == order.data.farmerUid;
+    }
+    function matchingReviewExistsAfter(orderId) {
+      return existsAfter(reviewPath(orderId))
+        && getAfter(reviewPath(orderId)).data.orderId == orderId
+        && getAfter(reviewPath(orderId)).data.customerUid == request.auth.uid;
+    }
 
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
@@ -25,7 +41,14 @@ service cloud.firestore {
       allow create: if isFarmer() && request.auth.uid == farmId;
       allow update: if (isFarmer() && request.auth.uid == farmId)
                     || isAdmin()
-                    || (signedIn() && onlyChanges(['ratingAvg','ratingCount']));
+                    || (signedIn()
+                        && onlyChanges(['ratingAvg','ratingCount','lastReviewOrderId'])
+                        && request.resource.data.ratingAvg is number
+                        && request.resource.data.ratingAvg >= 0
+                        && request.resource.data.ratingAvg <= 5
+                        && request.resource.data.ratingCount == resource.data.ratingCount + 1
+                        && matchingReviewExistsAfter(request.resource.data.lastReviewOrderId)
+                        && getAfter(reviewPath(request.resource.data.lastReviewOrderId)).data.farmerUid == farmId);
     }
 
     match /products/{id} {
@@ -36,7 +59,15 @@ service cloud.firestore {
                     && request.resource.data.quantityAvailable > 0;
       allow update: if signedIn() && (
         resource.data.farmerUid == request.auth.uid || isAdmin() ||
-        onlyChanges(['quantityAvailable','totalSold','ratingAvg','ratingCount','updatedAt']));
+        onlyChanges(['quantityAvailable','totalSold','ratingAvg','ratingCount','updatedAt']) ||
+        (onlyChanges(['ratingAvg','ratingCount','lastReviewOrderId'])
+         && request.resource.data.ratingAvg is number
+         && request.resource.data.ratingAvg >= 0
+         && request.resource.data.ratingAvg <= 5
+         && request.resource.data.ratingCount == resource.data.ratingCount + 1
+         && matchingReviewExistsAfter(request.resource.data.lastReviewOrderId)
+         && getAfter(reviewPath(request.resource.data.lastReviewOrderId)).data.productIds.hasAny([id])
+         && getAfter(reviewPath(request.resource.data.lastReviewOrderId)).data.farmerUid == resource.data.farmerUid));
       allow delete: if signedIn() && (resource.data.farmerUid == request.auth.uid || isAdmin());
     }
 
@@ -45,6 +76,13 @@ service cloud.firestore {
       allow read: if signedIn() && (resource.data.customerUid == request.auth.uid
                                  || resource.data.farmerUid == request.auth.uid || isAdmin());
       allow update: if isAdmin()
+                    || (signedIn()
+                        && resource.data.customerUid == request.auth.uid
+                        && resource.data.status == 'delivered'
+                        && resource.data.reviewed != true
+                        && request.resource.data.reviewed == true
+                        && onlyChanges(['reviewed'])
+                        && matchingReviewExistsAfter(id))
                     || (signedIn()
                         && resource.data.customerUid == request.auth.uid
                         && resource.data.status == 'placed'
@@ -64,7 +102,19 @@ service cloud.firestore {
 
     match /reviews/{id} {
       allow read: if signedIn();
-      allow create: if signedIn() && request.resource.data.customerUid == request.auth.uid;
+      allow create: if signedIn()
+        && id == request.resource.data.orderId
+        && request.resource.data.keys().hasOnly(['orderId','farmerUid','customerUid','customerName','productIds','rating','comment','createdAt'])
+        && request.resource.data.keys().hasAll(['orderId','farmerUid','customerUid','customerName','productIds','rating','comment','createdAt'])
+        && request.resource.data.customerUid == request.auth.uid
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.customerName is string
+        && request.resource.data.productIds is list
+        && request.resource.data.comment is string
+        && request.resource.data.createdAt is timestamp
+        && ownsDeliveredUnreviewedOrder(request.resource.data.orderId);
     }
 
     match /harvestAlerts/{id} {
