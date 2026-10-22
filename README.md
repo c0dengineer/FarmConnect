@@ -94,6 +94,16 @@ Use Cloudinary defines on Android as well:
 flutter run -d YOUR_DEVICE_ID --dart-define=CLOUDINARY_CLOUD_NAME=YOUR_CLOUD_NAME --dart-define=CLOUDINARY_UPLOAD_PRESET=YOUR_UNSIGNED_PRESET
 ```
 
+To build a release APK with photo uploads enabled and install it on a connected Android phone, enable **Developer options → USB debugging**, connect and unlock the phone, and approve the USB debugging prompt. From the project root, run:
+
+```bat
+adb devices
+flutter build apk --release --dart-define=CLOUDINARY_CLOUD_NAME=YOUR_CLOUD_NAME --dart-define=CLOUDINARY_UPLOAD_PRESET=YOUR_UNSIGNED_PRESET
+adb install -r "build\app\outputs\flutter-apk\app-release.apk"
+```
+
+Confirm `adb devices` lists the phone with status `device` before installing. Replace both Cloudinary placeholders with your cloud name and unsigned preset. The APK is built in `build\app\outputs\flutter-apk\app-release.apk`; `adb install -r` installs or updates it on the phone and preserves the app's data. If Windows reports that `adb` is not recognized, install **Android SDK Platform-Tools** in Android Studio and add its `platform-tools` folder to `PATH`, or use the full path to `adb.exe` from your Android SDK location. Include the Cloudinary defines in every build; they are not saved between commands.
+
 The map uses OpenStreetMap and does not require a Google Maps API key. Android builds still need the platform-specific Firebase Messaging and notification setup before push notifications work.
 
 ## Firebase setup
