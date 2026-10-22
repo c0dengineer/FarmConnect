@@ -1,29 +1,36 @@
-# Free image uploads with Cloudinary
+# Cloudinary photo uploads
 
-FarmConnect keeps Firebase Authentication and Firestore. Farm and product
-photos are uploaded directly to Cloudinary, and the returned HTTPS URLs are
-saved in Firestore. Firebase Storage is no longer required by the app.
+FarmConnect uploads farm and product photos to Cloudinary. It stores the returned HTTPS image URLs in Firestore. The app does not use Firebase Storage.
 
-## Configure the free account
+## Set up an unsigned upload preset
 
-1. Create a Cloudinary account and open **Settings → Upload → Upload presets**.
-2. Add an **unsigned** upload preset. Restrict it to image formats and set a
-   conservative maximum file size (for example, 5 MB). Keep transformations
-   and other optional processing minimal to preserve the free allowance.
-3. Copy the cloud name and preset name. They are public upload identifiers;
-   never put an API secret in Flutter code or `--dart-define`.
-4. Run the app with both values configured:
+1. Create or sign in to a Cloudinary account.
+2. In the Cloudinary console, open **Settings > Upload > Upload presets**.
+3. Create an **unsigned** preset. Restrict it to image formats and set reasonable file size limits (the app rejects files larger than 5 MB).
+4. Copy the account's **cloud name** and the new **preset name**.
 
-```powershell
-flutter run -d chrome `
-  --dart-define=CLOUDINARY_CLOUD_NAME=your_cloud_name `
-  --dart-define=CLOUDINARY_UPLOAD_PRESET=your_unsigned_preset
+The cloud name and unsigned preset are public identifiers. Never put a Cloudinary API secret in the Flutter app, a Dart define, or a committed file. Restrict the preset because unsigned uploads can be attempted outside this app. Check Cloudinary's current quotas before relying on uploads in production.
+
+## Run with uploads enabled
+
+In Windows **Command Prompt**, run this as one line from the project folder:
+
+```bat
+flutter run -d chrome --dart-define=CLOUDINARY_CLOUD_NAME=YOUR_CLOUD_NAME --dart-define=CLOUDINARY_UPLOAD_PRESET=YOUR_UNSIGNED_PRESET
 ```
 
-For Android, replace `chrome` with the connected device ID. Use the same
-`--dart-define` flags for release builds. If either setting is missing, upload
-shows an actionable configuration error instead of failing at Firebase Storage.
+Replace both placeholders with the values from your Cloudinary account. For another device, get its ID with `flutter devices` and replace `chrome` with that ID. Include both defines on every run and build; Flutter does not save them between commands.
 
-Unsigned upload presets can be called outside the app, so strict upload preset
-limits matter. Cloudinary's free allowance is quota-limited and can change;
-check the provider dashboard before relying on it for production traffic.
+For a release web build:
+
+```bat
+flutter build web --release --dart-define=CLOUDINARY_CLOUD_NAME=YOUR_CLOUD_NAME --dart-define=CLOUDINARY_UPLOAD_PRESET=YOUR_UNSIGNED_PRESET
+```
+
+For Android APK builds after Android platform setup:
+
+```bat
+flutter build apk --release --dart-define=CLOUDINARY_CLOUD_NAME=YOUR_CLOUD_NAME --dart-define=CLOUDINARY_UPLOAD_PRESET=YOUR_UNSIGNED_PRESET
+```
+
+If either value is missing or invalid, the farmer forms show an actionable message and photos cannot be uploaded. Do not paste credentials into the source code or README; supply them only to the local run/build command.
