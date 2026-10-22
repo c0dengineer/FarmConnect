@@ -69,7 +69,7 @@ flutter pub get
 flutter run -d chrome
 ```
 
-This project includes web Firebase options. The Cloudinary defines are optional for browsing and UI work, but required to upload farm or product photos. To run with uploads configured, use a **single line** in Command Prompt:
+This project includes web and Android Firebase options. The Cloudinary defines are optional for browsing and UI work, but required to upload farm or product photos. To run with uploads configured, use a **single line** in Command Prompt:
 
 ```bat
 flutter run -d chrome --dart-define=CLOUDINARY_CLOUD_NAME=YOUR_CLOUD_NAME --dart-define=CLOUDINARY_UPLOAD_PRESET=YOUR_UNSIGNED_PRESET
@@ -79,13 +79,14 @@ For another target, find its ID with `flutter devices` and replace `chrome` with
 
 ### Android setup
 
-The repository currently has Firebase Android options and Android permission notes, but does not include a generated `android/` platform project. To add one with Flutter, install Android Studio and its SDK, then from the project root run:
+The repository includes the generated `android/` platform project and Android Firebase options. Install Android Studio and its SDK, then from the project root connect a device or start an emulator and run:
 
 ```bat
-flutter create --platforms=android .
+flutter devices
+flutter run -d YOUR_DEVICE_ID
 ```
 
-Review the generated files, add the location and notification permissions from [`android_setup/AndroidManifest_snippets.xml`](android_setup/AndroidManifest_snippets.xml) to `android/app/src/main/AndroidManifest.xml`, then run `flutter devices` and `flutter run -d YOUR_DEVICE_ID`. Replace the device placeholder with a real ID. Allow location permission on the device if using GPS; the map pin picker can be used without GPS.
+Replace the device placeholder with a real ID. Before using GPS or notifications, add the permissions from [`android_setup/AndroidManifest_snippets.xml`](android_setup/AndroidManifest_snippets.xml) inside the `<manifest>` element in `android/app/src/main/AndroidManifest.xml`. Allow location permission on the device if using GPS; the map pin picker can be used without GPS.
 
 Use Cloudinary defines on Android as well:
 
