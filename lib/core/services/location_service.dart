@@ -2,12 +2,19 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
+  static Future<LocationPermission> requestPermission() async {
+    var perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    return perm;
+  }
+
   /// Returns the device position, or null when permission/service is unavailable.
   static Future<Position?> current() async {
     try {
       if (!await Geolocator.isLocationServiceEnabled()) return null;
-      var perm = await Geolocator.checkPermission();
-      if (perm == LocationPermission.denied) perm = await Geolocator.requestPermission();
+      final perm = await requestPermission();
       if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) return null;
       return await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 12)),

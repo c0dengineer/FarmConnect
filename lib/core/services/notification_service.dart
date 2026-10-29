@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:farmconnect/core/services/location_service.dart';
 import 'package:farmconnect/models/app_user.dart';
 
 class NotificationService {
@@ -24,6 +25,7 @@ class NotificationService {
         _subscribedTopics.clear();
         _initializedFor = user.uid;
         await fm.requestPermission();
+        await LocationService.requestPermission();
         _sub = FirebaseMessaging.onMessage.listen((m) {
           final n = m.notification;
           if (n == null) return;

@@ -28,4 +28,8 @@ String harvestedAgo(DateTime d) {
   return 'Harvested $days day${days == 1 ? '' : 's'} ago';
 }
 
-bool sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+bool sameDay(DateTime a, DateTime b) {
+  final localA = a.toLocal();
+  final localB = b.toLocal();
+  return localA.year == localB.year && localA.month == localB.month && localA.day == localB.day;
+}

@@ -1,4 +1,8 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:farmconnect/all.dart';
@@ -25,6 +29,9 @@ class _FirebaseBootstrapAppState extends State<FirebaseBootstrapApp> {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 20));
+    if (kIsWeb) {
+      await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    }
   }
 
   @override
@@ -106,10 +113,11 @@ class FarmConnectApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Register for push notifications as soon as a user is signed in.
     ref.listen(currentUserProvider, (_, next) {
       final u = next.valueOrNull;
-      if (u != null) NotificationService.init(u);
+      if (u == null) return;
+      unawaited(NotificationService.init(u));
+      unawaited(LocationService.requestPermission());
     });
 
     return MaterialApp.router(

@@ -107,29 +107,33 @@ class HomeScreen extends ConsumerWidget {
                       const Icon(Icons.location_on_rounded,
                           color: AppColors.primary, size: 19),
                       const SizedBox(width: 7),
-                      Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('DELIVERING TO',
-                                style: TextStyle(
-                                    fontSize: 9,
-                                    letterSpacing: 1,
-                                    color: AppColors.muted,
-                                    fontWeight: FontWeight.w700)),
-                            Text(
-                              locationName?.isNotEmpty == true
-                                  ? locationName!
-                                  : (pos == null
-                                      ? 'Choose your location'
-                                      : 'Farms near you'),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w700),
-                            ),
-                          ]),
-                      const Icon(Icons.expand_more_rounded, size: 20),
-                      const Spacer(),
+                      Expanded(
+                          child: Row(children: [
+                        Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                              const Text('DELIVERING TO',
+                                  style: TextStyle(
+                                      fontSize: 9,
+                                      letterSpacing: 1,
+                                      color: AppColors.muted,
+                                      fontWeight: FontWeight.w700)),
+                              Text(
+                                locationName?.isNotEmpty == true
+                                    ? locationName!
+                                    : (pos == null
+                                        ? 'Choose your location'
+                                        : 'Farms near you'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.w700),
+                              ),
+                            ])),
+                        const Icon(Icons.expand_more_rounded, size: 20),
+                      ])),
+                      const SizedBox(width: 8),
                       const Pill('100% Direct', icon: Icons.eco_rounded),
                     ]))),
             if (alerts.isNotEmpty) ...[
